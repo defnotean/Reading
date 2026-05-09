@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
+use scraper::{Html, Selector};
 use tauri::{AppHandle, Manager, State};
 
 use crate::cache::{covers_dir, CoverCache};
 use crate::db::Db;
 use crate::error::AppError;
-use crate::library::{Library, ProgressRecord, TitleRecord};
+use crate::library::{ContentKind, Library, ProgressRecord, TitleRecord};
 use crate::sources::{
     mangadex::MangaDex, BrowseList, ChapterContent, Source, TitleDetail, TitleSummary,
 };
@@ -16,6 +17,7 @@ pub struct AppState {
     pub covers: CoverCache,
     pub mangadex: Arc<dyn Source>,
     pub novelfire: Arc<dyn Source>,
+    pub generic: Arc<dyn Source>,
 }
 
 impl AppState {
@@ -27,7 +29,8 @@ impl AppState {
         let covers = CoverCache::new(covers_dir(&app_data));
         let mangadex:  Arc<dyn Source> = Arc::new(MangaDex);
         let novelfire: Arc<dyn Source> = Arc::new(crate::sources::novelfire::NovelFire);
-        Ok(Self { db, library, covers, mangadex, novelfire })
+        let generic:   Arc<dyn Source> = Arc::new(crate::sources::generic::Generic);
+        Ok(Self { db, library, covers, mangadex, novelfire, generic })
     }
 }
 
@@ -35,6 +38,7 @@ fn pick_source<'a>(state: &'a AppState, id: &str) -> Result<&'a Arc<dyn Source>,
     match id {
         "mangadex"  => Ok(&state.mangadex),
         "novelfire" => Ok(&state.novelfire),
+        "generic"   => Ok(&state.generic),
         other => Err(format!("unknown source: {other}")),
     }
 }
@@ -141,4 +145,33 @@ pub fn record_progress(
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
     state.library.record_progress(&source, &id, &chapter_id, position_pct)
+}
+
+#[derive(serde::Serialize)]
+pub struct GenericRouteHint {
+    pub source: String,
+    pub source_id: String,
+    pub kind: ContentKind,
+    pub title: String,
+    pub chapter_id: String,
+}
+
+#[tauri::command]
+pub async fn from_url(url: String, _state: State<'_, AppState>) -> Result<GenericRouteHint, AppError> {
+    let html = crate::http::client().get(&url).send().await?.text().await?;
+    let kind = crate::sources::generic::detect_kind(&html);
+    let doc = Html::parse_document(&html);
+    let title_sel = Selector::parse("title").map_err(|e| AppError::Parse(format!("{e:?}")))?;
+    let title = doc.select(&title_sel).next()
+        .map(|t| t.text().collect::<String>().trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| url.clone());
+    let encoded = urlencoding::encode(&url).to_string();
+    Ok(GenericRouteHint {
+        source: "generic".into(),
+        source_id: encoded.clone(),
+        kind,
+        title,
+        chapter_id: encoded,
+    })
 }

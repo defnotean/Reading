@@ -32,6 +32,7 @@ fn main() {
             reading_lib::commands::library_is_starred,
             reading_lib::commands::continue_reading,
             reading_lib::commands::record_progress,
+            reading_lib::commands::from_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

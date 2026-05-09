@@ -24,3 +24,13 @@ export async function getChapter(
 ): Promise<ChapterContent> {
   return invoke("get_chapter", { source, titleId, chapterId });
 }
+
+export interface GenericRouteHint {
+  source: "generic";
+  source_id: string;
+  kind: import("../types").ContentKind;
+  title: string;
+  chapter_id: string;
+}
+
+export const fromUrl = (url: string): Promise<GenericRouteHint> => invoke("from_url", { url });
