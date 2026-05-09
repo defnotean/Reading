@@ -26,3 +26,8 @@ src-tauri/WixTools/
 
 # Local smoke test outputs
 .smoke-shots/
+
+# Editor / agent session metadata
+.claude/
+.cursor/
+.aider*
