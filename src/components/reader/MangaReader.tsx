@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PageImage } from "../../types";
 import { recordProgress } from "../../ipc/library";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 
 interface Props {
   source: string;
@@ -23,6 +24,11 @@ export function MangaReader({ source, titleId, chapterId, pages }: Props) {
 
   function next() { setIndex(i => Math.min(i + 1, total - 1)); }
   function prev() { setIndex(i => Math.max(i - 1, 0)); }
+
+  useKeyboardShortcuts({
+    ArrowLeft:  prev,
+    ArrowRight: next,
+  }, [index, total]);
 
   if (total === 0) {
     return <div className="h-full flex items-center justify-center text-ink-300">No pages in this chapter.</div>;

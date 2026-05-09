@@ -7,12 +7,17 @@ import type { ChapterContent } from "../../types";
 import { toastError } from "../../stores/useToast";
 import { MangaReader } from "./MangaReader";
 import { NovelReader } from "./NovelReader";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 
 export function ReaderShell() {
   const { source = "", id = "", chapter = "" } = useParams();
   const navigate = useNavigate();
   const [content, setContent] = useState<ChapterContent | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useKeyboardShortcuts({
+    Escape: () => navigate(`/t/${source}/${id}`),
+  }, [source, id]);
 
   useEffect(() => {
     let cancelled = false;

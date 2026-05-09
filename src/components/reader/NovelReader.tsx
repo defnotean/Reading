@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { recordProgress } from "../../ipc/library";
+import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 
 interface Props {
   source: string;
@@ -33,6 +34,13 @@ export function NovelReader({ source, titleId, chapterId, paragraphs }: Props) {
 
   function next() { setIndex(i => Math.min(i + 1, total - 1)); }
   function prev() { setIndex(i => Math.max(i - 1, 0)); }
+
+  useKeyboardShortcuts({
+    ArrowLeft:  prev,
+    ArrowRight: next,
+    PageUp:     prev,
+    PageDown:   next,
+  }, [index, total]);
 
   return (
     <div className="relative h-full w-full">
