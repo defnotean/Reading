@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::AppResult;
 use crate::library::ContentKind;
 
-// pub mod mangadex; — added in Task 8.
+pub mod mangadex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TitleSummary {
