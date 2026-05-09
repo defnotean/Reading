@@ -7,11 +7,12 @@ import { CoverGrid } from "../components/CoverGrid";
 import { toastError } from "../stores/useToast";
 import { PasteUrlBar } from "../components/PasteUrlBar";
 
-type SourceId = "mangadex" | "novelfire";
+type SourceId = "mangadex" | "novelfire" | "comick";
 
 const SOURCES: { id: SourceId; label: string }[] = [
   { id: "mangadex",  label: "MangaDex"  },
   { id: "novelfire", label: "NovelFire" },
+  { id: "comick",    label: "ComicK"    },
 ];
 
 export default function BrowseRoute() {

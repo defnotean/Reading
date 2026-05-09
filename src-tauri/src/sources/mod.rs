@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::error::AppResult;
 use crate::library::ContentKind;
 
+pub mod comick;
 pub mod generic;
 pub mod mangadex;
 pub mod novelfire;

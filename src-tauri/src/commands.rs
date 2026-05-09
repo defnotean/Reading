@@ -18,6 +18,7 @@ pub struct AppState {
     pub mangadex: Arc<dyn Source>,
     pub novelfire: Arc<dyn Source>,
     pub generic: Arc<dyn Source>,
+    pub comick: Arc<dyn Source>,
 }
 
 impl AppState {
@@ -30,7 +31,8 @@ impl AppState {
         let mangadex:  Arc<dyn Source> = Arc::new(MangaDex);
         let novelfire: Arc<dyn Source> = Arc::new(crate::sources::novelfire::NovelFire);
         let generic:   Arc<dyn Source> = Arc::new(crate::sources::generic::Generic);
-        Ok(Self { db, library, covers, mangadex, novelfire, generic })
+        let comick:    Arc<dyn Source> = Arc::new(crate::sources::comick::ComicK);
+        Ok(Self { db, library, covers, mangadex, novelfire, generic, comick })
     }
 }
 
@@ -39,6 +41,7 @@ fn pick_source<'a>(state: &'a AppState, id: &str) -> Result<&'a Arc<dyn Source>,
         "mangadex"  => Ok(&state.mangadex),
         "novelfire" => Ok(&state.novelfire),
         "generic"   => Ok(&state.generic),
+        "comick"    => Ok(&state.comick),
         other => Err(format!("unknown source: {other}")),
     }
 }
@@ -110,7 +113,38 @@ pub async fn get_chapter(
     source: String, title_id: String, chapter_id: String, state: State<'_, AppState>,
 ) -> Result<ChapterContent, AppError> {
     let src = pick_source(state.inner(), &source).map_err(AppError::Internal)?;
-    src.chapter(&title_id, &chapter_id).await
+    match src.chapter(&title_id, &chapter_id).await {
+        Ok(content) => Ok(content),
+        Err(AppError::NotFound(msg)) if source == "mangadex" => {
+            // MangaDex returned NotFound — the chapter is hosted externally.
+            // Try ComicK as a fallback: look up the title's text + chapter number.
+            let detail = src
+                .title(&title_id)
+                .await
+                .map_err(|_| AppError::NotFound(msg.clone()))?;
+            let chap_num = detail
+                .chapters
+                .iter()
+                .find(|c| c.chapter_id == chapter_id)
+                .and_then(|c| c.number);
+            let title_text = &detail.summary.title;
+            if let Some(num) = chap_num {
+                if let Some(pages) =
+                    crate::sources::comick::find_chapter_by_title_and_number(title_text, num).await
+                {
+                    tracing::info!(
+                        "MangaDex external chapter — found on ComicK fallback \
+                         (title={}, chapter={})",
+                        title_text,
+                        num
+                    );
+                    return Ok(ChapterContent::MangaPages { pages });
+                }
+            }
+            Err(AppError::NotFound(msg))
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[tauri::command]
