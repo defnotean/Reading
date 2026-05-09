@@ -5,6 +5,7 @@ import { browse, search as ipcSearch } from "../ipc/sources";
 import type { BrowseList, TitleSummary } from "../types";
 import { CoverGrid } from "../components/CoverGrid";
 import { toastError } from "../stores/useToast";
+import { PasteUrlBar } from "../components/PasteUrlBar";
 
 type SourceId = "mangadex" | "novelfire";
 
@@ -63,14 +64,17 @@ export default function BrowseRoute() {
           ))}
         </div>
 
-        <div className="ml-auto relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-300" />
-          <input
-            value={q}
-            onChange={e => setQ(e.target.value)}
-            placeholder={`Search ${sourceLabel}…`}
-            className="bg-ink-800/60 rounded-md pl-8 pr-3 py-1.5 text-sm w-64 outline-none border border-ink-700/40 focus:border-accent"
-          />
+        <div className="ml-auto flex items-center gap-3">
+          <PasteUrlBar />
+          <div className="relative">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-300" />
+            <input
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              placeholder={`Search ${sourceLabel}…`}
+              className="bg-ink-800/60 rounded-md pl-8 pr-3 py-1.5 text-sm w-64 outline-none border border-ink-700/40 focus:border-accent"
+            />
+          </div>
         </div>
       </header>
 
