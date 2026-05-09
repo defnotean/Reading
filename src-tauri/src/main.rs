@@ -15,6 +15,13 @@ fn main() {
             app.manage(state);
             Ok(())
         })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                tracing::info!("close requested for {}", window.label());
+                // SQLite WAL is already flushed on each commit; no extra work needed.
+                // No tray, no minimize-on-close — let the OS exit normally.
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             reading_lib::commands::browse,
             reading_lib::commands::search,
