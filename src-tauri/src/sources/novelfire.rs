@@ -271,3 +271,95 @@ pub mod parse {
         Ok(NovelChapterBody { plain, paragraphs })
     }
 }
+
+// ---------------------------------------------------------------------------
+// Source trait implementation
+// ---------------------------------------------------------------------------
+
+use async_trait::async_trait;
+
+use crate::error::{AppError, AppResult};
+use crate::library::ContentKind;
+use crate::sources::{TitleDetail, TitleSummary};
+
+const BASE: &str = "https://novelfire.net";
+
+pub struct NovelFire;
+
+async fn fetch_html(url: &str) -> AppResult<String> {
+    let resp = crate::http::client().get(url).send().await?;
+    let status = resp.status();
+    if status.as_u16() == 403 {
+        return Err(AppError::Blocked(format!(
+            "novelfire blocked the request (Cloudflare?) — open {url} in your browser to refresh cookies, then retry"
+        )));
+    }
+    if !status.is_success() {
+        let body = resp.text().await.unwrap_or_default();
+        return Err(AppError::Http(format!(
+            "{status} {url}: {}",
+            &body.chars().take(200).collect::<String>()
+        )));
+    }
+    Ok(resp.text().await?)
+}
+
+#[async_trait]
+impl crate::sources::Source for NovelFire {
+    fn id(&self) -> &'static str { "novelfire" }
+    fn kind(&self) -> ContentKind { ContentKind::Novel }
+
+    async fn browse(
+        &self,
+        list: crate::sources::BrowseList,
+        _page: u32,
+    ) -> AppResult<Vec<TitleSummary>> {
+        let path = match list {
+            crate::sources::BrowseList::Trending => "/genre-all/sort-popular/status-all/all-novel",
+            crate::sources::BrowseList::Latest   => "/genre-all/sort-new/status-all/all-novel",
+        };
+        let html = fetch_html(&format!("{BASE}{path}")).await?;
+        parse::browse_page(&html)
+    }
+
+    async fn search(&self, q: &str, _page: u32) -> AppResult<Vec<TitleSummary>> {
+        let q = urlencoding::encode(q);
+        let html = fetch_html(&format!("{BASE}/search?keyword={q}")).await?;
+        parse::browse_page(&html)
+    }
+
+    async fn title(&self, id: &str) -> AppResult<TitleDetail> {
+        // Fetch main title page (has metadata + possibly a short chapter list).
+        let main_html = fetch_html(&format!("{BASE}/book/{id}")).await?;
+        let mut detail = parse::title_page(&main_html, id)?;
+
+        // Fetch the full chapter list separately and merge in if it succeeds.
+        // If the /chapters page errors (e.g. 404 on titles with very few chapters),
+        // fall back to whatever chapters were on the main page.
+        match fetch_html(&format!("{BASE}/book/{id}/chapters")).await {
+            Ok(chapters_html) => {
+                if let Ok(extra) = parse::title_page(&chapters_html, id) {
+                    if !extra.chapters.is_empty() {
+                        detail.chapters = extra.chapters;
+                    }
+                }
+            }
+            Err(_) => { /* keep whatever the main page gave us */ }
+        }
+
+        Ok(detail)
+    }
+
+    async fn chapter(
+        &self,
+        title_id: &str,
+        chapter_id: &str,
+    ) -> AppResult<crate::sources::ChapterContent> {
+        let html = fetch_html(&format!("{BASE}/book/{title_id}/{chapter_id}")).await?;
+        let body = parse::chapter_page(&html)?;
+        Ok(crate::sources::ChapterContent::NovelText {
+            plain: body.plain,
+            paragraphs: body.paragraphs,
+        })
+    }
+}
