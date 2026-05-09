@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { LeftRail } from "./LeftRail";
+import { Toaster } from "./Toast";
 
 export function Shell() {
   return (
@@ -8,6 +9,7 @@ export function Shell() {
       <main className="flex-1 h-full overflow-hidden relative">
         <Outlet />
       </main>
+      <Toaster />
     </div>
   );
 }
