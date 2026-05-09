@@ -197,6 +197,7 @@ pub mod parse {
                     title: if title_text.is_empty() { None } else { Some(title_text) },
                     published_at: None,
                     language: Some("en".into()),
+                    external_url: None,
                 })
             })
             .collect();

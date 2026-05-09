@@ -28,6 +28,7 @@ pub struct ChapterSummary {
     pub title: Option<String>,
     pub published_at: Option<i64>,
     pub language: Option<String>,
+    pub external_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

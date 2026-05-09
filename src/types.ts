@@ -17,6 +17,7 @@ export interface ChapterSummary {
   title?: string | null;
   published_at?: number | null;
   language?: string | null;
+  external_url?: string | null;
 }
 
 export interface TitleDetail {

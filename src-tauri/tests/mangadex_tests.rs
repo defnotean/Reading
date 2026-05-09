@@ -24,6 +24,36 @@ fn parses_feed_into_chapter_summaries() {
     let chapters = parse::feed_response(&raw).unwrap();
     assert!(!chapters.is_empty());
     assert!(chapters.iter().any(|c| c.number.is_some()));
+    // external_url is populated from attributes.externalUrl; fixture has null → all None
+    let has_non_null_external = chapters.iter().any(|c| c.external_url.is_some());
+    // The fixture chapters all have externalUrl: null so we expect none populated
+    assert!(!has_non_null_external, "fixture has no external chapters; external_url should all be None");
+}
+
+#[test]
+fn feed_response_external_url_string_is_extracted() {
+    // Synthetic feed with one external chapter
+    let raw = r#"{
+        "result":"ok","response":"collection",
+        "data":[{
+            "id":"ext-chapter-id",
+            "type":"chapter",
+            "attributes":{
+                "chapter":"5","title":"External Ch","translatedLanguage":"en",
+                "externalUrl":"https://viz.media/chapter/5",
+                "publishAt":"2023-01-01T00:00:00+00:00"
+            },
+            "relationships":[]
+        }],
+        "limit":1,"offset":0,"total":1
+    }"#;
+    let chapters = parse::feed_response(raw).unwrap();
+    assert_eq!(chapters.len(), 1);
+    assert_eq!(
+        chapters[0].external_url.as_deref(),
+        Some("https://viz.media/chapter/5"),
+        "external_url should be extracted from externalUrl string"
+    );
 }
 
 #[test]

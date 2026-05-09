@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import type { ChapterSummary, TitleSummary } from "../types";
 
 export function ChapterList({
@@ -11,20 +13,39 @@ export function ChapterList({
     <ul className="divide-y divide-ink-700/40 rounded-lg overflow-hidden glass">
       {chapters.map(c => (
         <li key={c.chapter_id}>
-          <Link
-            to={`/r/${summary.source}/${summary.source_id}/${c.chapter_id}`}
-            className="flex items-baseline gap-3 px-4 py-2.5 hover:bg-ink-700/40 focus-ring"
-          >
-            <span className="text-accent text-sm font-mono w-12">
-              {c.number != null ? `${c.number}` : "—"}
-            </span>
-            <span className="text-sm flex-1 truncate">{c.title || "Untitled"}</span>
-            {c.published_at && (
-              <span className="text-xs text-ink-300">
-                {new Date(c.published_at * 1000).toLocaleDateString()}
+          {c.external_url ? (
+            <button
+              type="button"
+              onClick={() => openUrl(c.external_url!)}
+              className="w-full flex items-baseline gap-3 px-4 py-2.5 hover:bg-ink-700/40 focus-ring text-left"
+            >
+              <span className="text-accent text-sm font-mono w-12">
+                {c.number != null ? `${c.number}` : "—"}
               </span>
-            )}
-          </Link>
+              <span className="text-sm flex-1 truncate">{c.title || "Untitled"}</span>
+              {c.published_at && (
+                <span className="text-xs text-ink-300">
+                  {new Date(c.published_at * 1000).toLocaleDateString()}
+                </span>
+              )}
+              <ExternalLink size={12} className="text-ink-400 flex-shrink-0 self-center" />
+            </button>
+          ) : (
+            <Link
+              to={`/r/${summary.source}/${summary.source_id}/${c.chapter_id}`}
+              className="flex items-baseline gap-3 px-4 py-2.5 hover:bg-ink-700/40 focus-ring"
+            >
+              <span className="text-accent text-sm font-mono w-12">
+                {c.number != null ? `${c.number}` : "—"}
+              </span>
+              <span className="text-sm flex-1 truncate">{c.title || "Untitled"}</span>
+              {c.published_at && (
+                <span className="text-xs text-ink-300">
+                  {new Date(c.published_at * 1000).toLocaleDateString()}
+                </span>
+              )}
+            </Link>
+          )}
         </li>
       ))}
     </ul>

@@ -61,8 +61,21 @@ impl Source for MangaDex {
 
     async fn chapter(&self, _title_id: &str, chapter_id: &str) -> AppResult<ChapterContent> {
         let url = format!("{BASE}/at-home/server/{chapter_id}");
-        let body = crate::http::client().get(&url).send().await?.text().await?;
+        let resp = crate::http::client().get(&url).send().await?;
+        let status = resp.status();
+        let body = resp.text().await?;
+        if !status.is_success() {
+            return Err(crate::error::AppError::Http(format!(
+                "{status} from MangaDex at-home for chapter {chapter_id}: {}",
+                body.chars().take(200).collect::<String>()
+            )));
+        }
         let pages = parse::at_home_response(&body, "data")?;
+        if pages.is_empty() {
+            return Err(crate::error::AppError::NotFound(format!(
+                "chapter {chapter_id} returned no images — it may be hosted externally"
+            )));
+        }
         Ok(ChapterContent::MangaPages { pages })
     }
 }
@@ -166,7 +179,12 @@ pub mod parse {
                 chrono::DateTime::parse_from_rfc3339(s).ok().map(|d| d.timestamp())
             });
             let language = attrs.get("translatedLanguage").and_then(Value::as_str).map(str::to_string);
-            Some(ChapterSummary { chapter_id: id, number, title, published_at, language })
+            // externalUrl is a string when the chapter lives on an external site, null otherwise
+            let external_url = attrs.get("externalUrl")
+                .and_then(Value::as_str)
+                .filter(|s| !s.is_empty())
+                .map(str::to_string);
+            Some(ChapterSummary { chapter_id: id, number, title, published_at, language, external_url })
         }).collect();
         chapters.sort_by(|a, b| a.number.partial_cmp(&b.number).unwrap_or(std::cmp::Ordering::Equal));
         Ok(chapters)

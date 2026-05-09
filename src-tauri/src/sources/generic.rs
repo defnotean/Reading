@@ -159,6 +159,7 @@ impl Source for Generic {
                 title: Some(title),
                 published_at: None,
                 language: None,
+                external_url: None,
             }],
         })
     }
