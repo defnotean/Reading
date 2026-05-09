@@ -1,9 +1,10 @@
 import { create } from "zustand";
-import { libraryList, setStarred } from "../ipc/library";
-import type { TitleRecord } from "../types";
+import { libraryList, setStarred, continueReading } from "../ipc/library";
+import type { ProgressRecord, TitleRecord } from "../types";
 
 interface LibraryStore {
   items: TitleRecord[];
+  recents: ProgressRecord[];
   loading: boolean;
   refresh: () => Promise<void>;
   remove: (source: string, id: string) => Promise<void>;
@@ -11,12 +12,13 @@ interface LibraryStore {
 
 export const useLibrary = create<LibraryStore>((set, get) => ({
   items: [],
+  recents: [],
   loading: false,
   refresh: async () => {
     set({ loading: true });
     try {
-      const items = await libraryList();
-      set({ items });
+      const [items, recents] = await Promise.all([libraryList(), continueReading(10)]);
+      set({ items, recents });
     } finally { set({ loading: false }); }
   },
   remove: async (source, id) => {
