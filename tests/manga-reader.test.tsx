@@ -14,14 +14,14 @@ const pages = [
 ];
 
 test("MangaReader renders first page and advances on Next click", () => {
-  render(<MangaReader source="mangadex" titleId="t" chapterId="c" pages={pages} />);
+  render(<MangaReader source="mangadex" titleId="t" chapterId="c" pages={pages} mode="paginated" />);
   expect(screen.getByText(/page 1 of 3/i)).toBeInTheDocument();
   fireEvent.click(screen.getByLabelText(/next page/i));
   expect(screen.getByText(/page 2 of 3/i)).toBeInTheDocument();
 });
 
 test("MangaReader does not advance past last page", () => {
-  render(<MangaReader source="mangadex" titleId="t" chapterId="c" pages={pages} />);
+  render(<MangaReader source="mangadex" titleId="t" chapterId="c" pages={pages} mode="paginated" />);
   fireEvent.click(screen.getByLabelText(/next page/i));
   fireEvent.click(screen.getByLabelText(/next page/i));
   fireEvent.click(screen.getByLabelText(/next page/i));   // would go past end

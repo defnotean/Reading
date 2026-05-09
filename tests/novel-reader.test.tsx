@@ -11,7 +11,7 @@ const paragraphs = Array.from({ length: 30 }, (_, i) =>
   `Paragraph ${i + 1}. ` + "Lorem ipsum dolor sit amet, ".repeat(10));
 
 test("NovelReader paginates and shows page count", () => {
-  render(<NovelReader source="nf" titleId="t" chapterId="c" paragraphs={paragraphs} plain={paragraphs.join("\n\n")} />);
+  render(<NovelReader source="nf" titleId="t" chapterId="c" paragraphs={paragraphs} plain={paragraphs.join("\n\n")} mode="paginated" />);
   expect(screen.getByText(/page 1 of \d+/i)).toBeInTheDocument();
   fireEvent.click(screen.getByLabelText(/next page/i));
   expect(screen.getByText(/page 2 of \d+/i)).toBeInTheDocument();
