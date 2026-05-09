@@ -5,6 +5,7 @@ use crate::error::AppResult;
 use crate::library::ContentKind;
 
 pub mod mangadex;
+pub mod novelfire;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TitleSummary {
