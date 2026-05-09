@@ -15,7 +15,7 @@ export function LeftRail() {
       initial={{ x: -8, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 220, damping: 24 }}
-      className="w-16 hover:w-48 transition-[width] duration-200 ease-out h-full glass border-r border-ink-700/60 flex flex-col py-4 gap-1 group"
+      className="w-20 h-full glass border-r border-ink-700/60 flex flex-col py-3 gap-1 flex-shrink-0"
     >
       {items.map(({ to, label, Icon }) => (
         <NavLink
@@ -25,14 +25,14 @@ export function LeftRail() {
           aria-label={label}
           className={({ isActive }) =>
             clsx(
-              "mx-2 px-3 py-2 rounded-lg flex items-center gap-3 focus-ring",
+              "mx-2 px-1 py-2.5 rounded-lg flex flex-col items-center gap-1 focus-ring transition-colors",
               "text-ink-300 hover:text-ink-100 hover:bg-ink-700/60",
-              isActive && "bg-accent/20 text-ink-100"
+              isActive && "bg-accent/20 text-accent-soft"
             )
           }
         >
-          <Icon size={20} />
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-sm">
+          <Icon size={22} strokeWidth={2} />
+          <span className="text-[10px] font-medium tracking-wide">
             {label}
           </span>
         </NavLink>

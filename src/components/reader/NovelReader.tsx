@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { recordProgress } from "../../ipc/library";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import type { ReadingMode } from "../../stores/useReadingMode";
 
 interface Props {
   source: string;
@@ -10,11 +11,20 @@ interface Props {
   chapterId: string;
   paragraphs: string[];
   plain: string;
+  mode: ReadingMode;
 }
 
 const PARAS_PER_PAGE = 6;
 
-export function NovelReader({ source, titleId, chapterId, paragraphs }: Props) {
+export function NovelReader(props: Props) {
+  return props.mode === "continuous"
+    ? <NovelContinuous {...props} />
+    : <NovelPaginated  {...props} />;
+}
+
+// ── Paginated ──────────────────────────────────────────────────────────────
+
+function NovelPaginated({ source, titleId, chapterId, paragraphs }: Props) {
   const pages = useMemo(() => {
     const out: string[][] = [];
     for (let i = 0; i < paragraphs.length; i += PARAS_PER_PAGE) {
@@ -27,7 +37,6 @@ export function NovelReader({ source, titleId, chapterId, paragraphs }: Props) {
   const total = pages.length;
 
   useEffect(() => {
-    if (total === 0) return;
     const pct = (index + 1) / total;
     void recordProgress(source, titleId, chapterId, pct).catch(() => {});
   }, [source, titleId, chapterId, index, total]);
@@ -80,6 +89,31 @@ export function NovelReader({ source, titleId, chapterId, paragraphs }: Props) {
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 glass rounded-full px-3 py-1 text-xs text-ink-200 pointer-events-none">
         Page {index + 1} of {total}
       </div>
+    </div>
+  );
+}
+
+// ── Continuous ─────────────────────────────────────────────────────────────
+
+function NovelContinuous({ source, titleId, chapterId, paragraphs }: Props) {
+  const lastPctRef = useMemo(() => ({ current: 0 }), []);
+
+  function onScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    const pct = Math.min(1, Math.max(0, el.scrollTop / Math.max(1, el.scrollHeight - el.clientHeight)));
+    if (Math.abs(pct - lastPctRef.current) > 0.05) {
+      lastPctRef.current = pct;
+      void recordProgress(source, titleId, chapterId, pct).catch(() => {});
+    }
+  }
+
+  return (
+    <div onScroll={onScroll} className="h-full w-full overflow-y-auto">
+      <article className="max-w-3xl mx-auto px-12 py-10 leading-relaxed text-ink-100 space-y-5">
+        {paragraphs.map((p, i) => (
+          <p key={i} className="text-base whitespace-pre-line">{p}</p>
+        ))}
+      </article>
     </div>
   );
 }
