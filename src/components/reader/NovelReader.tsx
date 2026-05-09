@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { recordProgress } from "../../ipc/library";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
-import type { ReadingMode } from "../../stores/useReadingMode";
+import type { FontFamily, FontSize, LineSpacing, ReadingMode, Theme } from "../../stores/useReaderSettings";
+import { SIZE_CLASSES, SPACING_CLASSES } from "../../stores/useReaderSettings";
 
 interface Props {
   source: string;
@@ -12,6 +13,11 @@ interface Props {
   paragraphs: string[];
   plain: string;
   mode: ReadingMode;
+  theme?: Theme;
+  font?: FontFamily;
+  size?: FontSize;
+  spacing?: LineSpacing;
+  onProgress?: (pct: number) => void;
 }
 
 const PARAS_PER_PAGE = 6;
@@ -22,9 +28,28 @@ export function NovelReader(props: Props) {
     : <NovelPaginated  {...props} />;
 }
 
+// Build prose class list from settings
+function proseClasses(font: FontFamily, size: FontSize, spacing: LineSpacing): string {
+  return [
+    "reader-prose",
+    font === "serif" ? "font-serif" : "font-sans",
+    SIZE_CLASSES[size],
+    SPACING_CLASSES[spacing],
+    "space-y-5",
+    "max-w-[64ch]",
+    "mx-auto",
+  ].join(" ");
+}
+
 // ── Paginated ──────────────────────────────────────────────────────────────
 
-function NovelPaginated({ source, titleId, chapterId, paragraphs }: Props) {
+function NovelPaginated({
+  source, titleId, chapterId, paragraphs,
+  font = "serif",
+  size = "base",
+  spacing = "normal",
+  onProgress,
+}: Props) {
   const pages = useMemo(() => {
     const out: string[][] = [];
     for (let i = 0; i < paragraphs.length; i += PARAS_PER_PAGE) {
@@ -37,34 +62,40 @@ function NovelPaginated({ source, titleId, chapterId, paragraphs }: Props) {
   const total = pages.length;
 
   useEffect(() => {
-    const pct = (index + 1) / total;
-    void recordProgress(source, titleId, chapterId, pct).catch(() => {});
-  }, [source, titleId, chapterId, index, total]);
+    const p = (index + 1) / total;
+    void recordProgress(source, titleId, chapterId, p).catch(() => {});
+    onProgress?.(p);
+  }, [source, titleId, chapterId, index, total, onProgress]);
 
   function next() { setIndex(i => Math.min(i + 1, total - 1)); }
   function prev() { setIndex(i => Math.max(i - 1, 0)); }
 
   useKeyboardShortcuts({
-    ArrowLeft:  prev,
+    ArrowLeft: prev,
     ArrowRight: next,
-    PageUp:     prev,
-    PageDown:   next,
+    PageUp:    prev,
+    PageDown:  next,
   }, [index, total]);
+
+  const prose = proseClasses(font, size, spacing);
 
   return (
     <div className="relative h-full w-full">
       <div className="absolute inset-0 overflow-y-auto px-12 py-8">
-        <motion.article
-          key={index}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="max-w-3xl mx-auto leading-relaxed text-ink-100 space-y-5"
-        >
-          {pages[index].map((p, i) => (
-            <p key={i} className="text-base whitespace-pre-line">{p}</p>
-          ))}
-        </motion.article>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.article
+            key={index}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className={prose}
+          >
+            {pages[index].map((p, i) => (
+              <p key={i} className="whitespace-pre-line">{p}</p>
+            ))}
+          </motion.article>
+        </AnimatePresence>
       </div>
 
       <button
@@ -95,23 +126,32 @@ function NovelPaginated({ source, titleId, chapterId, paragraphs }: Props) {
 
 // ── Continuous ─────────────────────────────────────────────────────────────
 
-function NovelContinuous({ source, titleId, chapterId, paragraphs }: Props) {
+function NovelContinuous({
+  source, titleId, chapterId, paragraphs,
+  font = "serif",
+  size = "base",
+  spacing = "normal",
+  onProgress,
+}: Props) {
   const lastPctRef = useMemo(() => ({ current: 0 }), []);
 
   function onScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
-    const pct = Math.min(1, Math.max(0, el.scrollTop / Math.max(1, el.scrollHeight - el.clientHeight)));
-    if (Math.abs(pct - lastPctRef.current) > 0.05) {
-      lastPctRef.current = pct;
-      void recordProgress(source, titleId, chapterId, pct).catch(() => {});
+    const p = Math.min(1, Math.max(0, el.scrollTop / Math.max(1, el.scrollHeight - el.clientHeight)));
+    if (Math.abs(p - lastPctRef.current) > 0.02) {
+      lastPctRef.current = p;
+      void recordProgress(source, titleId, chapterId, p).catch(() => {});
+      onProgress?.(p);
     }
   }
 
+  const prose = proseClasses(font, size, spacing);
+
   return (
     <div onScroll={onScroll} className="h-full w-full overflow-y-auto">
-      <article className="max-w-3xl mx-auto px-12 py-10 leading-relaxed text-ink-100 space-y-5">
+      <article className={`${prose} px-12 py-10`}>
         {paragraphs.map((p, i) => (
-          <p key={i} className="text-base whitespace-pre-line">{p}</p>
+          <p key={i} className="whitespace-pre-line">{p}</p>
         ))}
       </article>
     </div>

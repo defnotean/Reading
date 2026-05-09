@@ -23,9 +23,26 @@ export default {
           soft:    "#a892ff",
           glow:    "#7c5cff66",
         },
+        sepia: {
+          bg:       "#f5e9d3",
+          surface:  "#ecdcc0",
+          border:   "#d6c39e",
+          text:     "#3a3128",
+          textSoft: "#6b5a48",
+          accent:   "#a0521a",
+        },
+        paper: {
+          bg:       "#f8f7f4",
+          surface:  "#ffffff",
+          border:   "#e7e4dd",
+          text:     "#1a1a1a",
+          textSoft: "#4a4a4a",
+          accent:   "#5a3df0",
+        },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "Segoe UI", "sans-serif"],
+        serif: ["\"Source Serif Pro\"", "\"Source Serif 4\"", "\"Lora\"", "Georgia", "serif"],
       },
       boxShadow: {
         glow: "0 0 24px 4px rgba(124,92,255,0.30)",

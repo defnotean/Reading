@@ -1,14 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, ChevronsLeft, ChevronsRight, LayoutGrid, AlignJustify } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowLeft, ChevronsLeft, ChevronsRight,
+  Settings, HelpCircle,
+} from "lucide-react";
 import { getChapter, getTitle } from "../../ipc/sources";
 import type { ChapterContent, ChapterSummary, TitleDetail } from "../../types";
 import { toastError } from "../../stores/useToast";
-import { useReadingMode } from "../../stores/useReadingMode";
+import { useReaderSettings } from "../../stores/useReaderSettings";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
+import { useAutoHideChrome } from "../../hooks/useAutoHideChrome";
 import { MangaReader } from "./MangaReader";
 import { NovelReader } from "./NovelReader";
+import { ReaderSettings } from "./ReaderSettings";
+import { ShortcutsOverlay } from "./ShortcutsOverlay";
 
 export function ReaderShell() {
   const { source = "", id = "", chapter = "" } = useParams();
@@ -16,13 +22,18 @@ export function ReaderShell() {
   const [content, setContent] = useState<ChapterContent | null>(null);
   const [title, setTitle] = useState<TitleDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pct, setPct] = useState(0);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-  const { manga: mangaMode, novel: novelMode, toggle } = useReadingMode();
+  const s = useReaderSettings();
+  const { visible: chromeVisible } = useAutoHideChrome(2500);
 
   // Fetch chapter content and title detail in parallel
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setPct(0);
     Promise.all([
       getChapter(source, id, chapter),
       getTitle(source, id).catch(() => null),
@@ -48,13 +59,36 @@ export function ReaderShell() {
 
   function gotoPrev() { if (prevChapter) navigate(`/r/${source}/${id}/${prevChapter.chapter_id}`); }
   function gotoNext() { if (nextChapter) navigate(`/r/${source}/${id}/${nextChapter.chapter_id}`); }
-  function goBack()   { navigate(`/t/${source}/${id}`); }
+  function goBack()   {
+    if (settingsOpen) { setSettingsOpen(false); return; }
+    if (shortcutsOpen) { setShortcutsOpen(false); return; }
+    navigate(`/t/${source}/${id}`);
+  }
 
+  const isManga = content?.kind === "manga_pages";
+
+  // Global keyboard shortcuts
   useKeyboardShortcuts({
-    "[": gotoPrev,
-    "]": gotoNext,
-    Escape: goBack,
-  }, [source, id, prevChapter?.chapter_id ?? "", nextChapter?.chapter_id ?? ""]);
+    "[":      gotoPrev,
+    "]":      gotoNext,
+    Escape:   goBack,
+    "?":      () => { setShortcutsOpen(o => !o); },
+    "s":      () => { setSettingsOpen(o => !o); },
+    "S":      () => { setSettingsOpen(o => !o); },
+    // Manga-specific
+    "f":      () => { if (isManga) s.cycleFitMode(); },
+    "F":      () => { if (isManga) s.cycleFitMode(); },
+    "d":      () => { if (isManga) s.toggleMangaDirection(); },
+    "D":      () => { if (isManga) s.toggleMangaDirection(); },
+    "m":      () => { if (isManga) s.toggleMangaMode(); else s.toggleNovelMode(); },
+    "M":      () => { if (isManga) s.toggleMangaMode(); else s.toggleNovelMode(); },
+    // Novel-specific
+    "t":      () => { if (!isManga) s.cycleTheme(); },
+    "T":      () => { if (!isManga) s.cycleTheme(); },
+    "+":      () => { if (!isManga) s.cycleFontSize(); },
+    "=":      () => { if (!isManga) s.cycleFontSize(); },
+    "-":      () => { if (!isManga) s.cycleFontSize(); },
+  }, [source, id, prevChapter?.chapter_id ?? "", nextChapter?.chapter_id ?? "", isManga, settingsOpen, shortcutsOpen]);
 
   // Pretty labels for the header
   const titleText = title?.summary.title ?? id;
@@ -62,99 +96,147 @@ export function ReaderShell() {
   const chapterLabel = currentChapter
     ? (currentChapter.title || (currentChapter.number != null ? `Chapter ${currentChapter.number}` : chapter))
     : chapter;
-  const counter = idx >= 0 && playable.length > 0 ? `${idx + 1} of ${playable.length}` : "";
+  const counter = idx >= 0 && playable.length > 0 ? `${idx + 1} / ${playable.length}` : "";
 
-  // Pick mode icon based on current content kind
-  const isMangaContent = content?.kind === "manga_pages";
-  const mode = isMangaContent ? mangaMode : novelMode;
-  const ModeIcon = mode === "paginated" ? AlignJustify : LayoutGrid;
-  const modeNext = mode === "paginated" ? "continuous" : "paginated";
-  const modeTooltip = `Switch to ${modeNext} reading`;
+  // Determine theme class for root
+  const themeClass = isManga ? "theme-dark" : `theme-${s.novelTheme}`;
+
+  const kind = content?.kind ?? "manga_pages";
 
   return (
-    <div className="h-full w-full flex flex-col bg-ink-950 text-ink-100">
-      <header className="glass border-b border-ink-700/40 px-4 py-2.5 flex items-center gap-2 flex-shrink-0">
-        {/* Back button */}
-        <button
-          onClick={goBack}
-          className="rounded-md px-2.5 py-1.5 hover:bg-ink-700/60 focus-ring flex items-center gap-1.5 text-sm text-ink-200"
-        >
-          <ArrowLeft size={16} />
-          <span>Back</span>
-        </button>
+    <div className={`h-full w-full flex flex-col relative ${themeClass}`} style={{ cursor: chromeVisible ? undefined : "none" }}>
+      {/* Slim progress bar — always visible at top */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-ink-700/40 z-30 pointer-events-none">
+        <div
+          className="h-full bg-accent transition-[width] duration-300"
+          style={{ width: `${pct * 100}%` }}
+        />
+      </div>
 
-        <div className="h-5 w-px bg-ink-700/60 mx-1" />
-
-        {/* Chapter prev/next with labels */}
-        <button
-          type="button"
-          onClick={gotoPrev}
-          disabled={!prevChapter}
-          aria-label="Previous chapter"
-          title="Previous chapter ([)"
-          className="rounded-md px-2 py-1.5 hover:bg-ink-700/60 focus-ring disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-xs text-ink-300"
-        >
-          <ChevronsLeft size={16} />
-          <span className="hidden sm:inline">Prev ch.</span>
-        </button>
-        <button
-          type="button"
-          onClick={gotoNext}
-          disabled={!nextChapter}
-          aria-label="Next chapter"
-          title="Next chapter (])"
-          className="rounded-md px-2 py-1.5 hover:bg-ink-700/60 focus-ring disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-xs text-ink-300"
-        >
-          <span className="hidden sm:inline">Next ch.</span>
-          <ChevronsRight size={16} />
-        </button>
-
-        {/* Title + chapter label with counter */}
-        <div className="ml-3 flex-1 min-w-0">
-          <div className="text-sm font-medium truncate">{titleText}</div>
-          <div className="text-xs text-ink-300 truncate">
-            {chapterLabel}
-            {counter && <span className="ml-2 text-ink-400">· {counter}</span>}
-          </div>
-        </div>
-
-        {/* Reading mode toggle — only shown once content is known */}
-        {content && (
-          <button
-            onClick={() => toggle(isMangaContent ? "manga" : "novel")}
-            title={modeTooltip}
-            aria-label={modeTooltip}
-            className="rounded-md px-2.5 py-1.5 hover:bg-ink-700/60 focus-ring flex items-center gap-1.5 text-xs text-ink-300"
+      {/* Header — auto-hides */}
+      <AnimatePresence>
+        {chromeVisible && (
+          <motion.header
+            initial={{ y: -40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -40, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+            className="glass border-b border-ink-700/40 px-4 py-2.5 flex items-center gap-2 flex-shrink-0 z-20 relative"
           >
-            <ModeIcon size={16} />
-            <span className="hidden md:inline capitalize">{mode}</span>
-          </button>
-        )}
-      </header>
+            {/* Back */}
+            <button
+              onClick={goBack}
+              className="rounded-md px-2.5 py-1.5 hover:bg-ink-700/60 focus-ring flex items-center gap-1.5 text-sm text-ink-200 flex-shrink-0"
+            >
+              <ArrowLeft size={15} />
+              <span className="hidden sm:inline">Back</span>
+            </button>
 
-      <motion.div
-        key={`${source}_${id}_${chapter}`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-        className="flex-1 overflow-hidden relative"
-      >
+            <div className="h-5 w-px bg-ink-700/60 mx-0.5" />
+
+            {/* Chapter prev/next */}
+            <button
+              type="button"
+              onClick={gotoPrev}
+              disabled={!prevChapter}
+              aria-label="Previous chapter"
+              title="Previous chapter ([)"
+              className="rounded-md px-2 py-1.5 hover:bg-ink-700/60 focus-ring disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-xs text-ink-300"
+            >
+              <ChevronsLeft size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={gotoNext}
+              disabled={!nextChapter}
+              aria-label="Next chapter"
+              title="Next chapter (])"
+              className="rounded-md px-2 py-1.5 hover:bg-ink-700/60 focus-ring disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 text-xs text-ink-300"
+            >
+              <ChevronsRight size={15} />
+            </button>
+
+            {/* Title + chapter label */}
+            <div className="ml-2 flex-1 min-w-0">
+              <div className="text-sm font-semibold truncate leading-tight">{titleText}</div>
+              <div className="text-xs text-ink-400 truncate leading-tight">
+                {chapterLabel}
+                {counter && <span className="ml-2 opacity-60">· {counter}</span>}
+              </div>
+            </div>
+
+            {/* Right cluster: shortcuts + settings */}
+            <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+              <button
+                onClick={() => setShortcutsOpen(o => !o)}
+                title="Keyboard shortcuts (?)"
+                aria-label="Keyboard shortcuts"
+                className="rounded-md p-1.5 hover:bg-ink-700/60 focus-ring text-ink-400 hover:text-ink-200 transition-colors"
+              >
+                <HelpCircle size={16} />
+              </button>
+              {content && (
+                <button
+                  onClick={() => setSettingsOpen(o => !o)}
+                  title="Settings (S)"
+                  aria-label="Reader settings"
+                  className={`rounded-md p-1.5 hover:bg-ink-700/60 focus-ring transition-colors ${
+                    settingsOpen ? "text-accent" : "text-ink-400 hover:text-ink-200"
+                  }`}
+                >
+                  <Settings size={16} />
+                </button>
+              )}
+            </div>
+
+            {/* Settings panel anchored to header */}
+            <ReaderSettings
+              open={settingsOpen}
+              onClose={() => setSettingsOpen(false)}
+              kind={kind}
+            />
+          </motion.header>
+        )}
+      </AnimatePresence>
+
+      {/* Shortcuts overlay */}
+      <ShortcutsOverlay
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        kind={kind}
+      />
+
+      {/* Main reader area */}
+      <div className="flex-1 overflow-hidden relative">
         {loading || !content ? (
           <div className="h-full flex items-center justify-center text-ink-300 text-sm">Loading…</div>
         ) : content.kind === "manga_pages" ? (
           <MangaReader
-            source={source} titleId={id} chapterId={chapter}
+            source={source}
+            titleId={id}
+            chapterId={chapter}
             pages={content.pages}
-            mode={mangaMode}
+            mode={s.mangaMode}
+            direction={s.mangaDirection}
+            fit={s.mangaFit}
+            onProgress={setPct}
           />
         ) : (
           <NovelReader
-            source={source} titleId={id} chapterId={chapter}
-            paragraphs={content.paragraphs} plain={content.plain}
-            mode={novelMode}
+            source={source}
+            titleId={id}
+            chapterId={chapter}
+            paragraphs={content.paragraphs}
+            plain={content.plain}
+            mode={s.novelMode}
+            theme={s.novelTheme}
+            font={s.novelFont}
+            size={s.novelSize}
+            spacing={s.novelSpacing}
+            onProgress={setPct}
           />
         )}
-      </motion.div>
+      </div>
     </div>
   );
 }

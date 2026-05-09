@@ -22,4 +22,40 @@
   .focus-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent;
   }
+
+  /* Theme: dark (default) */
+  .theme-dark {
+    @apply bg-ink-950 text-ink-100;
+  }
+  .theme-dark .reader-prose {
+    @apply text-ink-100;
+  }
+
+  /* Theme: sepia */
+  .theme-sepia {
+    background-color: #f5e9d3;
+    color: #3a3128;
+  }
+  .theme-sepia .reader-prose {
+    color: #3a3128;
+  }
+  .theme-sepia .glass {
+    background-color: rgb(236 220 192 / 0.85);
+    border-color: #d6c39e;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Theme: light */
+  .theme-light {
+    background-color: #f8f7f4;
+    color: #1a1a1a;
+  }
+  .theme-light .reader-prose {
+    color: #1a1a1a;
+  }
+  .theme-light .glass {
+    background-color: rgb(255 255 255 / 0.85);
+    border-color: #e7e4dd;
+    backdrop-filter: blur(8px);
+  }
 }
