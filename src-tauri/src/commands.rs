@@ -5,7 +5,7 @@ use tauri::{AppHandle, Manager, State};
 use crate::cache::{covers_dir, CoverCache};
 use crate::db::Db;
 use crate::error::AppError;
-use crate::library::{ContentKind, Library, ProgressRecord, TitleRecord};
+use crate::library::{Library, ProgressRecord, TitleRecord};
 use crate::sources::{
     mangadex::MangaDex, BrowseList, ChapterContent, Source, TitleDetail, TitleSummary,
 };
@@ -15,6 +15,7 @@ pub struct AppState {
     pub library: Library,
     pub covers: CoverCache,
     pub mangadex: Arc<dyn Source>,
+    pub novelfire: Arc<dyn Source>,
 }
 
 impl AppState {
@@ -24,14 +25,16 @@ impl AppState {
         let db = Db::open(&db_path).map_err(|e| e.to_string())?;
         let library = Library::new(db.clone());
         let covers = CoverCache::new(covers_dir(&app_data));
-        let mangadex: Arc<dyn Source> = Arc::new(MangaDex);
-        Ok(Self { db, library, covers, mangadex })
+        let mangadex:  Arc<dyn Source> = Arc::new(MangaDex);
+        let novelfire: Arc<dyn Source> = Arc::new(crate::sources::novelfire::NovelFire);
+        Ok(Self { db, library, covers, mangadex, novelfire })
     }
 }
 
 fn pick_source<'a>(state: &'a AppState, id: &str) -> Result<&'a Arc<dyn Source>, String> {
     match id {
-        "mangadex" => Ok(&state.mangadex),
+        "mangadex"  => Ok(&state.mangadex),
+        "novelfire" => Ok(&state.novelfire),
         other => Err(format!("unknown source: {other}")),
     }
 }
@@ -84,7 +87,7 @@ pub async fn get_title(
     let title_record = TitleRecord {
         source:        detail.summary.source.clone(),
         source_id:     detail.summary.source_id.clone(),
-        kind:          ContentKind::Manga,
+        kind:          src.kind(),
         title:         detail.summary.title.clone(),
         author:        detail.summary.author.clone(),
         cover_path:    detail.summary.cover_path.clone(),
