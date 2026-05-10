@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
-import { browse, search as ipcSearch } from "../ipc/sources";
+import { search as ipcSearch } from "../ipc/sources";
 import type { BrowseList, TitleSummary } from "../types";
 import { CoverGrid } from "../components/CoverGrid";
-import { toastError } from "../stores/useToast";
+import { BrowseSection } from "../components/BrowseSection";
 import { PasteUrlBar } from "../components/PasteUrlBar";
+import { toastError } from "../stores/useToast";
 
 type SourceId = "mangadex" | "novelfire" | "comick";
 
@@ -15,31 +16,70 @@ const SOURCES: { id: SourceId; label: string }[] = [
   { id: "comick",    label: "ComicK"    },
 ];
 
+interface Section { id: string; label: string; list: BrowseList; }
+
+const MANGADEX_SECTIONS: Section[] = [
+  { id: "trending",   label: "Trending",       list: "trending" },
+  { id: "latest",     label: "Latest Updates", list: "latest"   },
+  { id: "isekai",     label: "Isekai",         list: { genre: "isekai" } },
+  { id: "action",     label: "Action",         list: { genre: "action" } },
+  { id: "comedy",     label: "Comedy",         list: { genre: "comedy" } },
+  { id: "romance",    label: "Romance",        list: { genre: "romance" } },
+  { id: "fantasy",    label: "Fantasy",        list: { genre: "fantasy" } },
+  { id: "slice",      label: "Slice of Life",  list: { genre: "slice-of-life" } },
+  { id: "mystery",    label: "Mystery",        list: { genre: "mystery" } },
+  { id: "scifi",      label: "Sci-Fi",         list: { genre: "sci-fi" } },
+  { id: "manhua",     label: "Manhua",         list: { lang: "zh" } },
+  { id: "manhwa",     label: "Manhwa",         list: { lang: "ko" } },
+];
+
+const COMICK_SECTIONS: Section[] = [
+  { id: "trending",   label: "Trending",       list: "trending" },
+  { id: "latest",     label: "Latest Updates", list: "latest"   },
+  { id: "isekai",     label: "Isekai",         list: { genre: "isekai" } },
+  { id: "action",     label: "Action",         list: { genre: "action" } },
+  { id: "comedy",     label: "Comedy",         list: { genre: "comedy" } },
+  { id: "romance",    label: "Romance",        list: { genre: "romance" } },
+  { id: "fantasy",    label: "Fantasy",        list: { genre: "fantasy" } },
+];
+
+const NOVELFIRE_SECTIONS: Section[] = [
+  { id: "trending",   label: "Trending",       list: "trending" },
+  { id: "latest",     label: "Latest Updates", list: "latest"   },
+  { id: "action",     label: "Action",         list: { genre: "action" } },
+  { id: "fantasy",    label: "Fantasy",        list: { genre: "fantasy" } },
+  { id: "romance",    label: "Romance",        list: { genre: "romance" } },
+  { id: "scifi",      label: "Sci-Fi",         list: { genre: "sci-fi" } },
+];
+
 export default function BrowseRoute() {
-  const [items, setItems] = useState<TitleSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [list, setList] = useState<BrowseList>("trending");
   const [source, setSource] = useState<SourceId>("mangadex");
   const [q, setQ] = useState("");
 
+  // Search results (when query is non-empty, replaces the categorized view)
+  const [searchItems, setSearchItems] = useState<TitleSummary[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   useEffect(() => {
+    if (!q.trim()) { setSearchItems(null); return; }
     let cancelled = false;
-    setLoading(true);
-    const op = q.trim().length > 0
-      ? ipcSearch(source, q.trim())
-      : browse(source, list, 0);
-    op.then(rows => { if (!cancelled) setItems(rows); })
+    setSearchLoading(true);
+    ipcSearch(source, q.trim())
+      .then(rows => { if (!cancelled) setSearchItems(rows); })
       .catch(e => { if (!cancelled) toastError(e.message ?? String(e)); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .finally(() => { if (!cancelled) setSearchLoading(false); });
     return () => { cancelled = true; };
-  }, [list, q, source]);
+  }, [q, source]);
 
   const sourceLabel = SOURCES.find(s => s.id === source)?.label ?? source;
+  const sections =
+    source === "mangadex"  ? MANGADEX_SECTIONS  :
+    source === "comick"    ? COMICK_SECTIONS    :
+                             NOVELFIRE_SECTIONS;
 
   return (
     <div className="h-full overflow-y-auto">
       <header className="sticky top-0 z-10 glass border-b border-ink-700/40 px-6 py-3 flex items-center gap-4">
-        {/* Source tabs */}
         <div className="flex bg-ink-800/60 rounded-md p-0.5 text-sm">
           {SOURCES.map(s => (
             <button
@@ -51,20 +91,6 @@ export default function BrowseRoute() {
             </button>
           ))}
         </div>
-
-        {/* Sort tabs */}
-        <div className="flex bg-ink-800/60 rounded-md p-0.5 text-sm">
-          {(["trending", "latest"] as const).map(k => (
-            <button
-              key={k}
-              onClick={() => setList(k)}
-              className={`px-3 py-1 rounded transition-colors ${list === k ? "bg-accent text-white" : "text-ink-300 hover:text-ink-100"}`}
-            >
-              {k[0].toUpperCase() + k.slice(1)}
-            </button>
-          ))}
-        </div>
-
         <div className="ml-auto flex items-center gap-3">
           <PasteUrlBar />
           <div className="relative">
@@ -72,20 +98,26 @@ export default function BrowseRoute() {
             <input
               value={q}
               onChange={e => setQ(e.target.value)}
-              placeholder={`Search ${sourceLabel}…`}
+              placeholder={`Search ${sourceLabel}...`}
               className="bg-ink-800/60 rounded-md pl-8 pr-3 py-1.5 text-sm w-64 outline-none border border-ink-700/40 focus:border-accent"
             />
           </div>
         </div>
       </header>
 
-      <div className="p-6">
-        {loading ? (
-          <SkeletonGrid />
-        ) : items.length === 0 ? (
-          <p className="text-ink-300 text-sm">No results.</p>
+      <div className="p-6 space-y-8">
+        {q.trim() ? (
+          searchLoading ? (
+            <SkeletonGrid />
+          ) : !searchItems || searchItems.length === 0 ? (
+            <p className="text-ink-300 text-sm">No results for "{q.trim()}".</p>
+          ) : (
+            <CoverGrid items={searchItems} />
+          )
         ) : (
-          <CoverGrid items={items} />
+          sections.map(s => (
+            <BrowseSection key={`${source}-${s.id}`} source={source} list={s.list} label={s.label} />
+          ))
         )}
       </div>
     </div>

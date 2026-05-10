@@ -39,15 +39,19 @@ impl Source for ComicK {
     }
 
     async fn browse(&self, list: BrowseList, page: u32) -> AppResult<Vec<TitleSummary>> {
-        // sort=follow = most followed (trending); sort=uploaded = most recently updated (latest)
-        let sort = match list {
-            BrowseList::Trending => "follow",
-            BrowseList::Latest => "uploaded",
-        };
-        let url = format!(
-            "{BASE}/v1.0/search?type=comic&sort={sort}&page={}&limit=20",
-            page + 1
-        );
+        let mut url = format!("{BASE}/v1.0/search?type=comic&page={}&limit=20", page + 1);
+        match &list {
+            BrowseList::Trending => url.push_str("&sort=follow"),
+            BrowseList::Latest   => url.push_str("&sort=uploaded"),
+            BrowseList::Genre(name) => {
+                // ComicK uses lowercase genre slugs; common names match.
+                url.push_str(&format!("&sort=follow&genres={}", urlencoding::encode(name)));
+            }
+            BrowseList::Lang(_) => {
+                // ComicK has its own country filter; for v1, just default to follow.
+                url.push_str("&sort=follow");
+            }
+        }
         let body = fetch_text(&url).await?;
         parse::search_response(&body)
     }

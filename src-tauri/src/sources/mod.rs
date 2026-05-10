@@ -56,11 +56,17 @@ pub enum ChapterContent {
     NovelText  { plain: String, paragraphs: Vec<String> },
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BrowseList {
     Trending,
     Latest,
+    /// Filter by tag/genre name (lowercase, e.g. "isekai", "action").
+    /// Each Source maps the name to its own filter system.
+    Genre(String),
+    /// Filter by original language code (e.g. "ja", "zh", "ko").
+    /// Useful for "Manhua" / "Manhwa" sections.
+    Lang(String),
 }
 
 #[async_trait]

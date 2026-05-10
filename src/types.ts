@@ -1,5 +1,9 @@
 export type ContentKind = "manga" | "novel";
-export type BrowseList = "trending" | "latest";
+export type BrowseList =
+  | "trending"
+  | "latest"
+  | { genre: string }
+  | { lang: string };
 
 export interface TitleSummary {
   source: string;

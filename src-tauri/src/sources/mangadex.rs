@@ -8,6 +8,29 @@ use crate::sources::{
 
 const BASE: &str = "https://api.mangadex.org";
 
+// MangaDex tag UUIDs (from /manga/tag — these IDs are stable).
+const GENRE_TAG_UUIDS: &[(&str, &str)] = &[
+    ("action",        "391b0423-d847-456f-aff0-8b0cfc03066b"),
+    ("adventure",     "87cc87cd-a395-47af-b27a-93258283bbc6"),
+    ("comedy",        "4d32cc48-9f00-4cca-9b5a-a839f0764984"),
+    ("drama",         "b9af3a63-f058-46de-a9a0-e0c13906197a"),
+    ("fantasy",       "cdc58593-87dd-415e-bbc0-2ec27bf404cc"),
+    ("horror",        "cdad7e68-1419-41dd-bdce-27753074a640"),
+    ("isekai",        "ace04997-f6bd-436e-b261-779182193d3d"),
+    ("mystery",       "ee968100-4191-4968-93d3-f82d72be7e46"),
+    ("romance",       "423e2eae-a7a2-4a8b-ac03-a8351462d71d"),
+    ("sci-fi",        "256c8bd9-4904-4360-bf4f-508a76d67183"),
+    ("slice-of-life", "e5301a23-ebd9-49dd-a0cb-2add944c7fe9"),
+    ("supernatural",  "eabc5b4c-6aff-42f3-b657-3e90cbd00b75"),
+    ("sports",        "69964a64-2f90-4d33-beeb-f3ed2875eb4c"),
+    ("tragedy",       "f8f62932-27da-4fe4-8ee1-6779a8c5edba"),
+];
+
+fn tag_uuid_for(name: &str) -> Option<&'static str> {
+    let key = name.to_ascii_lowercase().replace('_', "-");
+    GENRE_TAG_UUIDS.iter().find(|(n, _)| *n == key).map(|(_, id)| *id)
+}
+
 pub struct MangaDex;
 
 #[async_trait]
@@ -16,17 +39,33 @@ impl Source for MangaDex {
     fn kind(&self) -> ContentKind { ContentKind::Manga }
 
     async fn browse(&self, list: BrowseList, page: u32) -> AppResult<Vec<TitleSummary>> {
-        let order = match list {
-            BrowseList::Trending => "order%5BfollowedCount%5D=desc",
-            BrowseList::Latest   => "order%5BcreatedAt%5D=desc",
-        };
         let offset = page.saturating_mul(20);
-        let url = format!(
-            "{BASE}/manga?limit=20&offset={offset}&{order}\
+        let mut query = format!(
+            "limit=20&offset={offset}\
              &availableTranslatedLanguage%5B%5D=en\
              &contentRating%5B%5D=safe&contentRating%5B%5D=suggestive\
              &includes%5B%5D=author&includes%5B%5D=cover_art"
         );
+        match &list {
+            BrowseList::Trending => {
+                query.push_str("&order%5BfollowedCount%5D=desc");
+            }
+            BrowseList::Latest => {
+                query.push_str("&order%5BlatestUploadedChapter%5D=desc");
+            }
+            BrowseList::Genre(name) => {
+                if let Some(uuid) = tag_uuid_for(name) {
+                    query.push_str(&format!("&order%5BfollowedCount%5D=desc&includedTags%5B%5D={uuid}"));
+                } else {
+                    // Unknown genre — fall back to trending
+                    query.push_str("&order%5BfollowedCount%5D=desc");
+                }
+            }
+            BrowseList::Lang(code) => {
+                query.push_str(&format!("&order%5BfollowedCount%5D=desc&originalLanguage%5B%5D={code}"));
+            }
+        }
+        let url = format!("{BASE}/manga?{query}");
         let body = crate::http::client().get(&url).send().await?.text().await?;
         parse::browse_response(&body)
     }

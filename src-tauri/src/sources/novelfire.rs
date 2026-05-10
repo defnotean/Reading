@@ -316,10 +316,19 @@ impl crate::sources::Source for NovelFire {
         _page: u32,
     ) -> AppResult<Vec<TitleSummary>> {
         let path = match list {
-            crate::sources::BrowseList::Trending => "/genre-all/sort-popular/status-all/all-novel",
-            crate::sources::BrowseList::Latest   => "/genre-all/sort-new/status-all/all-novel",
+            crate::sources::BrowseList::Trending => "/genre-all/sort-popular/status-all/all-novel".to_string(),
+            crate::sources::BrowseList::Latest   => "/genre-all/sort-new/status-all/all-novel".to_string(),
+            crate::sources::BrowseList::Genre(name) => {
+                // NovelFire genre slugs match common English genre names with hyphens.
+                // Best-effort; if the genre URL 404s, the request will return an error.
+                format!("/genre/{}/sort-popular/status-all/all-novel", name)
+            }
+            crate::sources::BrowseList::Lang(_) => {
+                // NovelFire doesn't expose an origin-language filter — fall back to popular.
+                "/genre-all/sort-popular/status-all/all-novel".to_string()
+            }
         };
-        let html = fetch_html(&format!("{BASE}{path}")).await?;
+        let html = fetch_html(&format!("{BASE}{}", path)).await?;
         parse::browse_page(&html)
     }
 
