@@ -15,6 +15,7 @@ import { MangaReader } from "./MangaReader";
 import { NovelReader } from "./NovelReader";
 import { ReaderSettings } from "./ReaderSettings";
 import { ShortcutsOverlay } from "./ShortcutsOverlay";
+import { ChapterPicker } from "./ChapterPicker";
 
 export function ReaderShell() {
   const { source = "", id = "", chapter = "" } = useParams();
@@ -105,7 +106,7 @@ export function ReaderShell() {
   const titleText = title?.summary.title ?? id;
   const currentChapter = playable[idx >= 0 ? idx : 0] ?? null;
   const chapterLabel = currentChapter
-    ? (currentChapter.title || (currentChapter.number != null ? `Chapter ${currentChapter.number}` : chapter))
+    ? (currentChapter.title?.trim() || (currentChapter.number != null ? `Chapter ${currentChapter.number}` : chapter))
     : chapter;
   const counter = idx >= 0 && playable.length > 0 ? `${idx + 1} / ${playable.length}` : "";
 
@@ -167,12 +168,28 @@ export function ReaderShell() {
               <ChevronsRight size={15} />
             </button>
 
-            {/* Title + chapter label */}
+            {/* Title + chapter picker */}
             <div className="ml-2 flex-1 min-w-0">
               <div className="text-sm font-semibold truncate leading-tight">{titleText}</div>
-              <div className="text-xs text-ink-400 truncate leading-tight">
-                {chapterLabel}
-                {counter && <span className="ml-2 opacity-60">· {counter}</span>}
+              <div className="flex items-center gap-1">
+                {playable.length > 1 ? (
+                  <ChapterPicker
+                    source={source}
+                    titleId={id}
+                    chapters={playable}
+                    currentChapterId={chapter}
+                    fromState={fromState}
+                  />
+                ) : (
+                  <div className="text-xs text-ink-400 truncate leading-tight">
+                    {chapterLabel}
+                  </div>
+                )}
+                {counter && (
+                  <span className="text-xs text-ink-500 flex-shrink-0 hidden sm:inline">
+                    · {counter}
+                  </span>
+                )}
               </div>
             </div>
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { browse } from "../ipc/sources";
+import { cachedBrowse } from "../stores/useCache";
 import type { BrowseList, TitleSummary } from "../types";
 import { CoverCard } from "./CoverCard";
 import { toastError } from "../stores/useToast";
@@ -34,7 +34,7 @@ export function BrowseSection({ source, list, label }: Props) {
     if (!visible || items !== null) return;
     let cancelled = false;
     setLoading(true);
-    browse(source, list, 0)
+    cachedBrowse(source, list, 0)
       .then(rows => { if (!cancelled) setItems(rows); })
       .catch(e => { if (!cancelled) {
         toastError(`${label}: ${e?.message ?? String(e)}`);

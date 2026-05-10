@@ -22,7 +22,7 @@ export function ChapterList({
               <span className="text-accent text-sm font-mono w-12">
                 {c.number != null ? `${c.number}` : "—"}
               </span>
-              <span className="text-sm flex-1 truncate">{c.title || "Untitled"}</span>
+              <span className="text-sm flex-1 truncate">{c.title?.trim() || (c.number != null ? `Chapter ${c.number}` : "Untitled")}</span>
               {c.published_at && (
                 <span className="text-xs text-ink-300">
                   {new Date(c.published_at * 1000).toLocaleDateString()}
@@ -39,7 +39,7 @@ export function ChapterList({
               <span className="text-accent text-sm font-mono w-12">
                 {c.number != null ? `${c.number}` : "—"}
               </span>
-              <span className="text-sm flex-1 truncate">{c.title || "Untitled"}</span>
+              <span className="text-sm flex-1 truncate">{c.title?.trim() || (c.number != null ? `Chapter ${c.number}` : "Untitled")}</span>
               {c.published_at && (
                 <span className="text-xs text-ink-300">
                   {new Date(c.published_at * 1000).toLocaleDateString()}

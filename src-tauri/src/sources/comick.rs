@@ -103,42 +103,156 @@ pub async fn find_chapter_by_title_and_number(
     title: &str,
     chapter_number: f32,
 ) -> Option<Vec<PageImage>> {
-    let q = urlencoding::encode(title);
-    let search_url = format!("{BASE}/v1.0/search?type=comic&q={q}&limit=5");
-    let search_body = fetch_text(&search_url).await.ok()?;
-    let summaries = parse::search_response(&search_body).ok()?;
+    tracing::info!(
+        "ComicK fallback: searching for title={:?} chapter={}",
+        title,
+        chapter_number
+    );
 
-    for s in summaries.iter().take(3) {
-        // Loose title match (lowercase contains in either direction)
-        let known = s.title.to_lowercase();
-        let want = title.to_lowercase();
-        if !(known.contains(&want) || want.contains(&known)) {
-            continue;
+    // Try the full title first, then individual significant words as fallbacks.
+    let queries: Vec<String> = {
+        let full = title.to_string();
+        // Also try with just the first 3+ significant words (in case of subtitle noise)
+        let words: Vec<&str> = title
+            .split_whitespace()
+            .filter(|w| w.len() >= 3)
+            .collect();
+        let short = if words.len() > 2 {
+            Some(words[..words.len().min(3)].join(" "))
+        } else {
+            None
+        };
+        let mut q = vec![full];
+        if let Some(s) = short {
+            if s != title {
+                q.push(s);
+            }
         }
+        q
+    };
 
-        // Fetch English chapters (limit 200; enough for most series)
-        let chap_url = format!(
-            "{BASE}/comic/{}/chapters?lang=en&page=1&limit=200",
-            s.source_id
+    for query in &queries {
+        let encoded = urlencoding::encode(query);
+        let search_url = format!("{BASE}/v1.0/search?type=comic&q={encoded}&limit=5");
+        tracing::info!("ComicK fallback: trying search query={:?}", query);
+        let search_body = match fetch_text(&search_url).await {
+            Ok(b) => b,
+            Err(e) => {
+                tracing::info!("ComicK fallback: search failed: {}", e);
+                continue;
+            }
+        };
+        let summaries = match parse::search_response(&search_body) {
+            Ok(s) => s,
+            Err(e) => {
+                tracing::info!("ComicK fallback: parse failed: {}", e);
+                continue;
+            }
+        };
+
+        tracing::info!(
+            "ComicK fallback: got {} results for {:?}",
+            summaries.len(),
+            query
         );
-        let chap_body = fetch_text(&chap_url).await.ok()?;
-        let chapters = parse::chapters_response(&chap_body).ok()?;
 
-        // Find the chapter whose number is within 0.001 of the target
-        let target = chapters.iter().find(|c| {
-            c.number
-                .map(|n| (n - chapter_number).abs() < 0.001)
-                .unwrap_or(false)
-        })?;
+        for s in summaries.iter().take(5) {
+            // Loose title match: lowercase contains check in either direction,
+            // or at least 2 words from the query appear in the result title.
+            let known = s.title.to_lowercase();
+            let want = title.to_lowercase();
+            let loose_word_match = {
+                let want_words: Vec<&str> = want
+                    .split_whitespace()
+                    .filter(|w| w.len() >= 3)
+                    .collect();
+                let match_count = want_words
+                    .iter()
+                    .filter(|&&w| known.contains(w))
+                    .count();
+                match_count >= 2.min(want_words.len())
+            };
+            if !(known.contains(&want) || want.contains(&known) || loose_word_match) {
+                tracing::info!(
+                    "ComicK fallback: skipping title={:?} (no match for {:?})",
+                    s.title,
+                    title
+                );
+                continue;
+            }
 
-        // Fetch pages
-        let pages_url = format!("{BASE}/chapter/{}/get_images", target.chapter_id);
-        let pages_body = fetch_text(&pages_url).await.ok()?;
-        let pages = parse::chapter_images_response(&pages_body).ok()?;
-        if !pages.is_empty() {
-            return Some(pages);
+            tracing::info!(
+                "ComicK fallback: matched comic hid={} title={:?}",
+                s.source_id,
+                s.title
+            );
+
+            // Fetch English chapters (limit 200; enough for most series)
+            let chap_url = format!(
+                "{BASE}/comic/{}/chapters?lang=en&page=1&limit=200",
+                s.source_id
+            );
+            let chap_body = match fetch_text(&chap_url).await.ok() {
+                Some(b) => b,
+                None => continue,
+            };
+            let chapters = match parse::chapters_response(&chap_body).ok() {
+                Some(c) => c,
+                None => continue,
+            };
+
+            // Find the chapter whose number is within 0.001 of the target
+            let target = chapters.iter().find(|c| {
+                c.number
+                    .map(|n| (n - chapter_number).abs() < 0.001)
+                    .unwrap_or(false)
+            });
+
+            let target = match target {
+                Some(t) => t,
+                None => {
+                    tracing::info!(
+                        "ComicK fallback: chapter {} not found in {} chapters for {:?}",
+                        chapter_number,
+                        chapters.len(),
+                        s.title
+                    );
+                    continue;
+                }
+            };
+
+            tracing::info!(
+                "ComicK fallback: found chapter hid={} for number={}",
+                target.chapter_id,
+                chapter_number
+            );
+
+            // Fetch pages
+            let pages_url = format!("{BASE}/chapter/{}/get_images", target.chapter_id);
+            let pages_body = match fetch_text(&pages_url).await.ok() {
+                Some(b) => b,
+                None => continue,
+            };
+            let pages = match parse::chapter_images_response(&pages_body).ok() {
+                Some(p) => p,
+                None => continue,
+            };
+            if !pages.is_empty() {
+                tracing::info!(
+                    "ComicK fallback: returning {} pages for chapter {}",
+                    pages.len(),
+                    chapter_number
+                );
+                return Some(pages);
+            }
         }
     }
+
+    tracing::info!(
+        "ComicK fallback: no match found for title={:?} chapter={}",
+        title,
+        chapter_number
+    );
     None
 }
 

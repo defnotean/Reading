@@ -288,12 +288,24 @@ const BASE: &str = "https://novelfire.net";
 pub struct NovelFire;
 
 async fn fetch_html(url: &str) -> AppResult<String> {
+    fetch_html_inner(url, false).await
+}
+
+async fn fetch_html_silent_404(url: &str) -> AppResult<String> {
+    fetch_html_inner(url, true).await
+}
+
+async fn fetch_html_inner(url: &str, silent_404: bool) -> AppResult<String> {
     let resp = crate::http::client().get(url).send().await?;
     let status = resp.status();
     if status.as_u16() == 403 {
         return Err(AppError::Blocked(format!(
             "novelfire blocked the request (Cloudflare?) — open {url} in your browser to refresh cookies, then retry"
         )));
+    }
+    if status.as_u16() == 404 && silent_404 {
+        // Caller wants a graceful empty response rather than a hard error.
+        return Ok(String::new());
     }
     if !status.is_success() {
         let body = resp.text().await.unwrap_or_default();
@@ -315,21 +327,37 @@ impl crate::sources::Source for NovelFire {
         list: crate::sources::BrowseList,
         _page: u32,
     ) -> AppResult<Vec<TitleSummary>> {
-        let path = match list {
-            crate::sources::BrowseList::Trending => "/genre-all/sort-popular/status-all/all-novel".to_string(),
-            crate::sources::BrowseList::Latest   => "/genre-all/sort-new/status-all/all-novel".to_string(),
+        match list {
+            crate::sources::BrowseList::Trending => {
+                let html = fetch_html(&format!("{BASE}/genre-all/sort-popular/status-all/all-novel")).await?;
+                parse::browse_page(&html)
+            }
+            crate::sources::BrowseList::Latest => {
+                let html = fetch_html(&format!("{BASE}/genre-all/sort-new/status-all/all-novel")).await?;
+                parse::browse_page(&html)
+            }
             crate::sources::BrowseList::Genre(name) => {
-                // NovelFire genre slugs match common English genre names with hyphens.
-                // Best-effort; if the genre URL 404s, the request will return an error.
-                format!("/genre/{}/sort-popular/status-all/all-novel", name)
+                // NovelFire genre URLs use the pattern /genre-{name}/sort-popular/status-all/all-novel
+                // e.g. /genre-action/... (NOT /genre/action/...).
+                // Use a silent 404 so unknown genre slugs return empty rather than an error toast.
+                let slug = name.to_ascii_lowercase().replace(' ', "-");
+                let url = format!("{BASE}/genre-{slug}/sort-popular/status-all/all-novel");
+                let html = fetch_html_silent_404(&url).await?;
+                if html.is_empty() {
+                    return Ok(vec![]);
+                }
+                // browse_page returns Err when no cards found; treat that the same as empty.
+                match parse::browse_page(&html) {
+                    Ok(items) => Ok(items),
+                    Err(_) => Ok(vec![]),
+                }
             }
             crate::sources::BrowseList::Lang(_) => {
                 // NovelFire doesn't expose an origin-language filter — fall back to popular.
-                "/genre-all/sort-popular/status-all/all-novel".to_string()
+                let html = fetch_html(&format!("{BASE}/genre-all/sort-popular/status-all/all-novel")).await?;
+                parse::browse_page(&html)
             }
-        };
-        let html = fetch_html(&format!("{BASE}{}", path)).await?;
-        parse::browse_page(&html)
+        }
     }
 
     async fn search(&self, q: &str, _page: u32) -> AppResult<Vec<TitleSummary>> {

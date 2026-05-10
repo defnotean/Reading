@@ -116,17 +116,20 @@ pub async fn get_chapter(
     match src.chapter(&title_id, &chapter_id).await {
         Ok(content) => Ok(content),
         Err(AppError::NotFound(msg)) if source == "mangadex" => {
-            // MangaDex returned NotFound — the chapter is hosted externally.
+            // MangaDex returned NotFound — the chapter may be hosted externally.
             // Try ComicK as a fallback: look up the title's text + chapter number.
             let detail = src
                 .title(&title_id)
                 .await
                 .map_err(|_| AppError::NotFound(msg.clone()))?;
-            let chap_num = detail
+            let chapter_meta = detail
                 .chapters
                 .iter()
-                .find(|c| c.chapter_id == chapter_id)
-                .and_then(|c| c.number);
+                .find(|c| c.chapter_id == chapter_id);
+            let chap_num = chapter_meta.and_then(|c| c.number);
+            let external_url = chapter_meta
+                .and_then(|c| c.external_url.as_deref())
+                .map(str::to_string);
             let title_text = &detail.summary.title;
             if let Some(num) = chap_num {
                 if let Some(pages) =
@@ -141,7 +144,15 @@ pub async fn get_chapter(
                     return Ok(ChapterContent::MangaPages { pages });
                 }
             }
-            Err(AppError::NotFound(msg))
+            // Propagate the external URL in the error message so the frontend can offer
+            // "Open on publisher's site" when ComicK also fails.
+            if let Some(ext) = external_url {
+                Err(AppError::NotFound(format!(
+                    "{msg}\nexternal_url={ext}"
+                )))
+            } else {
+                Err(AppError::NotFound(msg))
+            }
         }
         Err(e) => Err(e),
     }

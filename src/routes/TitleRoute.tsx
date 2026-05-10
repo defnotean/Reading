@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Star } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { getTitle } from "../ipc/sources";
+import { cachedGetTitle } from "../stores/useCache";
 import { isStarred, setStarred } from "../ipc/library";
 import { toastError } from "../stores/useToast";
 import type { TitleDetail } from "../types";
@@ -29,7 +29,7 @@ export default function TitleRoute() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([getTitle(source, id), isStarred(source, id)])
+    Promise.all([cachedGetTitle(source, id), isStarred(source, id)])
       .then(([d, s]) => { if (!cancelled) { setDetail(d); setStarredState(s); }})
       .catch(e => { if (!cancelled) toastError(e.message ?? String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
