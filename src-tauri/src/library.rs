@@ -47,6 +47,10 @@ pub struct ProgressRecord {
     pub chapter_id: String,
     pub position_pct: f64,
     pub updated_at: i64,
+    /// Joined from `titles` table — nullable when the title hasn't been seen yet.
+    pub title: Option<String>,
+    /// Joined from `titles` table — `None` if no cover has been cached.
+    pub cover_path: Option<String>,
 }
 
 #[derive(Clone)]
@@ -161,8 +165,11 @@ impl Library {
     pub fn continue_reading(&self, limit: u32) -> AppResult<Vec<ProgressRecord>> {
         let conn = self.db.conn();
         let mut stmt = conn.prepare(
-            "SELECT source, source_id, chapter_id, position_pct, updated_at
-             FROM progress ORDER BY updated_at DESC LIMIT ?",
+            "SELECT p.source, p.source_id, p.chapter_id, p.position_pct, p.updated_at,
+                    t.title, t.cover_path
+             FROM progress p
+             LEFT JOIN titles t ON t.source = p.source AND t.source_id = p.source_id
+             ORDER BY p.updated_at DESC LIMIT ?",
         )?;
         let rows = stmt.query_map([limit as i64], |r| {
             Ok(ProgressRecord {
@@ -171,6 +178,8 @@ impl Library {
                 chapter_id:   r.get(2)?,
                 position_pct: r.get(3)?,
                 updated_at:   r.get(4)?,
+                title:        r.get(5)?,
+                cover_path:   r.get(6)?,
             })
         })?;
         Ok(rows.filter_map(Result::ok).collect())

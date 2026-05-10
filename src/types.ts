@@ -58,6 +58,10 @@ export interface ProgressRecord {
   chapter_id: string;
   position_pct: number;
   updated_at: number;
+  /** Joined from titles table — null if the title hasn't been opened/cached yet. */
+  title?: string | null;
+  /** Joined from titles table — null if no cover has been cached locally. */
+  cover_path?: string | null;
 }
 
 export interface AppErr {

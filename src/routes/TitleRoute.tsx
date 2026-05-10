@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { getTitle } from "../ipc/sources";
 import { isStarred, setStarred } from "../ipc/library";
@@ -11,9 +11,17 @@ import { ChapterList } from "../components/ChapterList";
 
 export default function TitleRoute() {
   const { source = "", id = "" } = useParams();
+  const navigate = useNavigate();
   const [detail, setDetail] = useState<TitleDetail | null>(null);
   const [starred, setStarredState] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  function goBack() {
+    // navigate(-1) keeps the user's prior scroll/state on Browse or Library;
+    // if there's no history (deep-linked open), fall back to Browse.
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -33,7 +41,20 @@ export default function TitleRoute() {
   }
 
   if (loading || !detail) {
-    return <div className="p-8 text-ink-300 text-sm">Loading…</div>;
+    return (
+      <div className="h-full">
+        <header className="px-6 pt-4">
+          <button
+            onClick={goBack}
+            className="rounded-md px-2.5 py-1.5 glass hover:bg-ink-700/60 focus-ring flex items-center gap-1.5 text-sm text-ink-200"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+        </header>
+        <div className="p-8 text-ink-300 text-sm">Loading…</div>
+      </div>
+    );
   }
   const cover = detail.summary.cover_path
     ? convertFileSrc(detail.summary.cover_path)
@@ -48,7 +69,16 @@ export default function TitleRoute() {
             style={{ backgroundImage: `url(${cover})`, backgroundSize: "cover", backgroundPosition: "center" }}
           />
         )}
-        <div className="bg-gradient-to-b from-transparent to-ink-950 p-8 flex gap-8">
+        <div className="absolute top-4 left-4 z-10">
+          <button
+            onClick={goBack}
+            className="rounded-md px-2.5 py-1.5 glass hover:bg-ink-700/60 focus-ring flex items-center gap-1.5 text-sm text-ink-200"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+        </div>
+        <div className="bg-gradient-to-b from-transparent to-ink-950 p-8 pt-16 flex gap-8">
           <motion.div
             layoutId={`cover-${detail.summary.source}-${detail.summary.source_id}`}
             className="w-56 aspect-[2/3] rounded-lg overflow-hidden glass shadow-glow flex-shrink-0"

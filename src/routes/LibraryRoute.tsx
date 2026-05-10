@@ -8,11 +8,6 @@ export default function LibraryRoute() {
   const { items, recents, loading, refresh, remove } = useLibrary();
   useEffect(() => { void refresh(); }, [refresh]);
 
-  // Quick lookup from "<source>_<id>" -> TitleRecord, so the carousel can pull
-  // cover paths and titles for items that may or may not be starred.
-  const titleIndex = new Map<string, typeof items[number]>();
-  for (const t of items) titleIndex.set(`${t.source}_${t.source_id}`, t);
-
   return (
     <div className="h-full overflow-y-auto p-8">
       <h1 className="text-2xl font-semibold mb-6">Library</h1>
@@ -22,9 +17,12 @@ export default function LibraryRoute() {
           <h2 className="text-lg font-semibold mb-3">Continue Reading</h2>
           <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-2 px-2">
             {recents.map(r => {
-              const t = titleIndex.get(`${r.source}_${r.source_id}`);
-              const cover = t?.cover_path ? convertFileSrc(t.cover_path) : undefined;
-              const pct = Math.round(r.position_pct * 100);
+              const cover = r.cover_path ? convertFileSrc(r.cover_path) : undefined;
+              const pct   = Math.round(r.position_pct * 100);
+              const label = r.title ?? "Untitled";
+              const chapShort = r.chapter_id
+                .replace(/^chapter-/, "ch. ")
+                .replace(/^([0-9a-f-]{36})$/, "ch.");   // collapse bare UUIDs
               return (
                 <Link
                   key={`${r.source}_${r.source_id}`}
@@ -39,12 +37,12 @@ export default function LibraryRoute() {
                     {cover ? (
                       <img
                         src={cover}
-                        alt={t?.title ?? r.source_id}
+                        alt={label}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-ink-400 text-xs px-3 text-center">
-                        {t?.title ?? r.source_id}
+                        {label}
                       </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-ink-900/80">
@@ -54,11 +52,9 @@ export default function LibraryRoute() {
                       />
                     </div>
                   </motion.div>
-                  <p className="text-sm font-medium line-clamp-2 mt-2">
-                    {t?.title ?? "Untitled"}
-                  </p>
+                  <p className="text-sm font-medium line-clamp-2 mt-2">{label}</p>
                   <p className="text-xs text-ink-300">
-                    {pct}% — {r.chapter_id.replace(/^chapter-/, "ch. ")}
+                    {pct}% — {chapShort}
                   </p>
                 </Link>
               );
