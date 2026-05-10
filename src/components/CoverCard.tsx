@@ -1,12 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import type { TitleSummary } from "../types";
 
 export function CoverCard({ item }: { item: TitleSummary }) {
   const src = item.cover_path ? convertFileSrc(item.cover_path) : item.cover_url ?? undefined;
+  const location = useLocation();
+  // Remember the list view the user came from so the Title's Back button
+  // returns there instead of `navigate(-1)`-ing into a Reader detour.
+  const from = location.pathname.startsWith("/t/") || location.pathname.startsWith("/r/")
+    ? "/"
+    : location.pathname;
   return (
-    <Link to={`/t/${item.source}/${item.source_id}`} aria-label={item.title}>
+    <Link to={`/t/${item.source}/${item.source_id}`} state={{ from }} aria-label={item.title}>
       <motion.div
         layoutId={`cover-${item.source}-${item.source_id}`}
         whileHover={{ y: -4, scale: 1.02 }}

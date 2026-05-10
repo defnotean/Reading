@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft, ChevronsLeft, ChevronsRight,
@@ -19,6 +19,11 @@ import { ShortcutsOverlay } from "./ShortcutsOverlay";
 export function ReaderShell() {
   const { source = "", id = "", chapter = "" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // Preserve the original list view (`from`) across Reader navigations so
+  // Title's Back button can return to it instead of `navigate(-1)`-ing into
+  // a stale Reader entry.
+  const fromState = (location.state as { from?: string } | null)?.from;
   const [content, setContent] = useState<ChapterContent | null>(null);
   const [title, setTitle] = useState<TitleDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,12 +62,18 @@ export function ReaderShell() {
   const prevChapter = idx > 0 ? playable[idx - 1] : null;
   const nextChapter = idx >= 0 && idx < playable.length - 1 ? playable[idx + 1] : null;
 
-  function gotoPrev() { if (prevChapter) navigate(`/r/${source}/${id}/${prevChapter.chapter_id}`); }
-  function gotoNext() { if (nextChapter) navigate(`/r/${source}/${id}/${nextChapter.chapter_id}`); }
+  function gotoPrev() {
+    if (prevChapter) navigate(`/r/${source}/${id}/${prevChapter.chapter_id}`, { state: { from: fromState } });
+  }
+  function gotoNext() {
+    if (nextChapter) navigate(`/r/${source}/${id}/${nextChapter.chapter_id}`, { state: { from: fromState } });
+  }
   function goBack()   {
     if (settingsOpen) { setSettingsOpen(false); return; }
     if (shortcutsOpen) { setShortcutsOpen(false); return; }
-    navigate(`/t/${source}/${id}`);
+    // Forward `from` to the Title page so its Back button returns to the
+    // original list view, not to this Reader.
+    navigate(`/t/${source}/${id}`, { state: { from: fromState } });
   }
 
   const isManga = content?.kind === "manga_pages";

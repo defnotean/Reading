@@ -4,8 +4,8 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import type { ChapterSummary, TitleSummary } from "../types";
 
 export function ChapterList({
-  summary, chapters,
-}: { summary: TitleSummary; chapters: ChapterSummary[] }) {
+  summary, chapters, from,
+}: { summary: TitleSummary; chapters: ChapterSummary[]; from?: string }) {
   if (chapters.length === 0) {
     return <p className="text-ink-300 text-sm">No chapters available.</p>;
   }
@@ -33,6 +33,7 @@ export function ChapterList({
           ) : (
             <Link
               to={`/r/${summary.source}/${summary.source_id}/${c.chapter_id}`}
+              state={{ from }}
               className="flex items-baseline gap-3 px-4 py-2.5 hover:bg-ink-700/40 focus-ring"
             >
               <span className="text-accent text-sm font-mono w-12">

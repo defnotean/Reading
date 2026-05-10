@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Star } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -12,15 +12,18 @@ import { ChapterList } from "../components/ChapterList";
 export default function TitleRoute() {
   const { source = "", id = "" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [detail, setDetail] = useState<TitleDetail | null>(null);
   const [starred, setStarredState] = useState(false);
   const [loading, setLoading] = useState(true);
 
   function goBack() {
-    // navigate(-1) keeps the user's prior scroll/state on Browse or Library;
-    // if there's no history (deep-linked open), fall back to Browse.
-    if (window.history.length > 1) navigate(-1);
-    else navigate("/");
+    // Skip Reader/Title detours: jump straight to the list view the user
+    // originally came from (`state.from` set by CoverCard / LibraryRoute).
+    // Default to Browse if state was lost (e.g. opened from ReaderShell's
+    // "Back to title" button, which doesn't preserve state).
+    const from = (location.state as { from?: string } | null)?.from;
+    navigate(from ?? "/");
   }
 
   useEffect(() => {
@@ -113,7 +116,11 @@ export default function TitleRoute() {
 
       <div className="p-8">
         <h2 className="text-lg font-semibold mb-3">Chapters</h2>
-        <ChapterList summary={detail.summary} chapters={detail.chapters} />
+        <ChapterList
+          summary={detail.summary}
+          chapters={detail.chapters}
+          from={(location.state as { from?: string } | null)?.from}
+        />
       </div>
     </div>
   );

@@ -27,6 +27,7 @@ export default function LibraryRoute() {
                 <Link
                   key={`${r.source}_${r.source_id}`}
                   to={`/r/${r.source}/${r.source_id}/${r.chapter_id}`}
+                  state={{ from: "/library" }}
                   className="snap-start flex-shrink-0 w-40 group"
                 >
                   <motion.div
@@ -82,7 +83,7 @@ export default function LibraryRoute() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-lg overflow-hidden glass relative group"
                 >
-                  <Link to={`/t/${t.source}/${t.source_id}`}>
+                  <Link to={`/t/${t.source}/${t.source_id}`} state={{ from: "/library" }}>
                     <div className="aspect-[2/3] bg-ink-800">
                       {cover && <img src={cover} alt={t.title} className="w-full h-full object-cover" />}
                     </div>
