@@ -120,6 +120,10 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
   const rightZoneAction = direction === "rtl" ? prev : next;
   const leftZoneLabel   = direction === "rtl" ? "Next page" : "Previous page";
   const rightZoneLabel  = direction === "rtl" ? "Previous page" : "Next page";
+  const canGoNext = direction === "rtl" ? index > 0 : index < total - 1;
+  const canGoPrev = direction === "rtl" ? index < total - 1 : index > 0;
+  const leftZoneAvailable = direction === "rtl" ? canGoNext : canGoPrev;
+  const rightZoneAvailable = direction === "rtl" ? canGoPrev : canGoNext;
 
   // For overflow scroll in "height" and "actual" fit modes
   const containerClass = fit === "width"
@@ -151,9 +155,11 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
       {/* Left click zone */}
       <button
         type="button"
-        onClick={leftZoneAction}
+        onClick={leftZoneAvailable ? leftZoneAction : undefined}
         aria-label={leftZoneLabel}
-        className="absolute left-0 top-0 h-full w-1/3 focus-ring group z-10"
+        disabled={!leftZoneAvailable}
+        tabIndex={leftZoneAvailable ? 0 : -1}
+        className="absolute left-0 top-0 h-full w-1/3 focus-ring group z-10 disabled:pointer-events-none"
       >
         <ChevronLeft
           className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-300/60 group-hover:text-ink-100 transition-colors"
@@ -164,9 +170,11 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
       {/* Right click zone */}
       <button
         type="button"
-        onClick={rightZoneAction}
+        onClick={rightZoneAvailable ? rightZoneAction : undefined}
         aria-label={rightZoneLabel}
-        className="absolute right-0 top-0 h-full w-1/3 focus-ring group z-10"
+        disabled={!rightZoneAvailable}
+        tabIndex={rightZoneAvailable ? 0 : -1}
+        className="absolute right-0 top-0 h-full w-1/3 focus-ring group z-10 disabled:pointer-events-none"
       >
         <ChevronRight
           className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-300/60 group-hover:text-ink-100 transition-colors"

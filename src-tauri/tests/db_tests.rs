@@ -23,5 +23,5 @@ fn db_migration_is_idempotent() {
     let tmp = tempdir().unwrap();
     let path = tmp.path().join("reading.sqlite");
     let _ = Db::open(&path).unwrap();
-    let _ = Db::open(&path).unwrap();    // open twice, must not fail
+    let _ = Db::open(&path).unwrap(); // open twice, must not fail
 }

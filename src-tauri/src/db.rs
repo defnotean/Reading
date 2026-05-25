@@ -68,14 +68,18 @@ impl Db {
         conn.pragma_update(None, "synchronous", "NORMAL")?;
         conn.pragma_update(None, "foreign_keys", "ON")?;
 
-        let db = Db { inner: Arc::new(Mutex::new(conn)) };
+        let db = Db {
+            inner: Arc::new(Mutex::new(conn)),
+        };
         db.run_migrations()?;
         Ok(db)
     }
 
     pub fn open_in_memory() -> AppResult<Self> {
         let conn = Connection::open_in_memory()?;
-        let db = Db { inner: Arc::new(Mutex::new(conn)) };
+        let db = Db {
+            inner: Arc::new(Mutex::new(conn)),
+        };
         db.run_migrations()?;
         Ok(db)
     }

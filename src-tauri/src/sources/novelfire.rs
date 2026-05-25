@@ -11,8 +11,7 @@ pub mod parse {
     }
 
     fn sel(s: &str) -> AppResult<Selector> {
-        Selector::parse(s)
-            .map_err(|e| AppError::Parse(format!("bad selector `{s}`: {e:?}")))
+        Selector::parse(s).map_err(|e| AppError::Parse(format!("bad selector `{s}`: {e:?}")))
     }
 
     /// Extract a slug from a NovelFire book href like `/book/shadow-slave` or
@@ -23,7 +22,11 @@ pub mod parse {
         let rest = path.strip_prefix("book/")?;
         // The slug is the first path segment after "book/"
         let slug = rest.split('/').next().unwrap_or(rest);
-        if slug.is_empty() { None } else { Some(slug.to_string()) }
+        if slug.is_empty() {
+            None
+        } else {
+            Some(slug.to_string())
+        }
     }
 
     fn absolute(href: &str) -> String {
@@ -54,12 +57,12 @@ pub mod parse {
         let doc = Html::parse_document(html);
 
         // li.novel-item — confirmed selector
-        let card_sel  = sel("li.novel-item")?;
+        let card_sel = sel("li.novel-item")?;
         // The title lives in h4.novel-title inside the card
         let title_sel = sel("h4.novel-title")?;
         // The anchor wrapping the card carries the href
-        let link_sel  = sel("a")?;
-        let img_sel   = sel("img")?;
+        let link_sel = sel("a")?;
+        let img_sel = sel("img")?;
 
         let mut out = Vec::new();
         for card in doc.select(&card_sel) {
@@ -68,7 +71,9 @@ pub mod parse {
                 Some(el) => el.text().collect::<String>().trim().to_string(),
                 None => continue,
             };
-            if title.is_empty() { continue }
+            if title.is_empty() {
+                continue;
+            }
 
             // Href from the first anchor that has a /book/ href
             let href = card
@@ -87,7 +92,8 @@ pub mod parse {
                 .select(&img_sel)
                 .next()
                 .and_then(|img| {
-                    img.value().attr("data-src")
+                    img.value()
+                        .attr("data-src")
                         .or_else(|| img.value().attr("src"))
                 })
                 .map(absolute);
@@ -177,7 +183,9 @@ pub mod parse {
             .select(&a_sel)
             .filter_map(|el| {
                 let href = el.value().attr("href")?;
-                if !href.contains("/chapter-") { return None; }
+                if !href.contains("/chapter-") {
+                    return None;
+                }
                 // chapter_id = last path segment of href
                 let chapter_id = href
                     .trim_end_matches('/')
@@ -194,7 +202,11 @@ pub mod parse {
                 Some(ChapterSummary {
                     chapter_id,
                     number,
-                    title: if title_text.is_empty() { None } else { Some(title_text) },
+                    title: if title_text.is_empty() {
+                        None
+                    } else {
+                        Some(title_text)
+                    },
                     published_at: None,
                     language: Some("en".into()),
                     external_url: None,
@@ -319,8 +331,12 @@ async fn fetch_html_inner(url: &str, silent_404: bool) -> AppResult<String> {
 
 #[async_trait]
 impl crate::sources::Source for NovelFire {
-    fn id(&self) -> &'static str { "novelfire" }
-    fn kind(&self) -> ContentKind { ContentKind::Novel }
+    fn id(&self) -> &'static str {
+        "novelfire"
+    }
+    fn kind(&self) -> ContentKind {
+        ContentKind::Novel
+    }
 
     async fn browse(
         &self,
@@ -329,11 +345,15 @@ impl crate::sources::Source for NovelFire {
     ) -> AppResult<Vec<TitleSummary>> {
         match list {
             crate::sources::BrowseList::Trending => {
-                let html = fetch_html(&format!("{BASE}/genre-all/sort-popular/status-all/all-novel")).await?;
+                let html = fetch_html(&format!(
+                    "{BASE}/genre-all/sort-popular/status-all/all-novel"
+                ))
+                .await?;
                 parse::browse_page(&html)
             }
             crate::sources::BrowseList::Latest => {
-                let html = fetch_html(&format!("{BASE}/genre-all/sort-new/status-all/all-novel")).await?;
+                let html =
+                    fetch_html(&format!("{BASE}/genre-all/sort-new/status-all/all-novel")).await?;
                 parse::browse_page(&html)
             }
             crate::sources::BrowseList::Genre(name) => {
@@ -354,7 +374,10 @@ impl crate::sources::Source for NovelFire {
             }
             crate::sources::BrowseList::Lang(_) => {
                 // NovelFire doesn't expose an origin-language filter — fall back to popular.
-                let html = fetch_html(&format!("{BASE}/genre-all/sort-popular/status-all/all-novel")).await?;
+                let html = fetch_html(&format!(
+                    "{BASE}/genre-all/sort-popular/status-all/all-novel"
+                ))
+                .await?;
                 parse::browse_page(&html)
             }
         }

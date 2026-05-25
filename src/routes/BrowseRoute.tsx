@@ -9,6 +9,8 @@ import { PasteUrlBar } from "../components/PasteUrlBar";
 import { toastError } from "../stores/useToast";
 
 type SourceId = "mangadex" | "novelfire" | "comick";
+const SEARCH_DEBOUNCE_MS = 300;
+const MIN_SEARCH_LENGTH = 3;
 
 const SOURCES: { id: SourceId; label: string }[] = [
   { id: "mangadex",  label: "MangaDex"  },
@@ -60,16 +62,28 @@ export default function BrowseRoute() {
   const [searchItems, setSearchItems] = useState<TitleSummary[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  const trimmedQuery = q.trim();
+  const hasSearchQuery = trimmedQuery.length >= MIN_SEARCH_LENGTH;
+
   useEffect(() => {
-    if (!q.trim()) { setSearchItems(null); return; }
+    if (trimmedQuery.length < MIN_SEARCH_LENGTH) {
+      setSearchItems(null);
+      setSearchLoading(false);
+      return;
+    }
     let cancelled = false;
     setSearchLoading(true);
-    ipcSearch(source, q.trim())
-      .then(rows => { if (!cancelled) setSearchItems(rows); })
-      .catch(e => { if (!cancelled) toastError(e.message ?? String(e)); })
-      .finally(() => { if (!cancelled) setSearchLoading(false); });
-    return () => { cancelled = true; };
-  }, [q, source]);
+    const timer = window.setTimeout(() => {
+      ipcSearch(source, trimmedQuery)
+        .then(rows => { if (!cancelled) setSearchItems(rows); })
+        .catch(e => { if (!cancelled) toastError(e.message ?? String(e)); })
+        .finally(() => { if (!cancelled) setSearchLoading(false); });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [trimmedQuery, source]);
 
   const sourceLabel = SOURCES.find(s => s.id === source)?.label ?? source;
   const sections =
@@ -106,11 +120,11 @@ export default function BrowseRoute() {
       </header>
 
       <div className="p-6 space-y-8">
-        {q.trim() ? (
+        {hasSearchQuery ? (
           searchLoading ? (
             <SkeletonGrid />
           ) : !searchItems || searchItems.length === 0 ? (
-            <p className="text-ink-300 text-sm">No results for "{q.trim()}".</p>
+            <p className="text-ink-300 text-sm">No results for "{trimmedQuery}".</p>
           ) : (
             <CoverGrid items={searchItems} />
           )

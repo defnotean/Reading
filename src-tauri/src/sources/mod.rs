@@ -52,8 +52,13 @@ pub struct PageImage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ChapterContent {
-    MangaPages { pages: Vec<PageImage> },
-    NovelText  { plain: String, paragraphs: Vec<String> },
+    MangaPages {
+        pages: Vec<PageImage>,
+    },
+    NovelText {
+        plain: String,
+        paragraphs: Vec<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,7 +80,7 @@ pub trait Source: Send + Sync {
     fn kind(&self) -> ContentKind;
 
     async fn browse(&self, list: BrowseList, page: u32) -> AppResult<Vec<TitleSummary>>;
-    async fn search(&self, q: &str, page: u32)            -> AppResult<Vec<TitleSummary>>;
-    async fn title(&self, id: &str)                       -> AppResult<TitleDetail>;
+    async fn search(&self, q: &str, page: u32) -> AppResult<Vec<TitleSummary>>;
+    async fn title(&self, id: &str) -> AppResult<TitleDetail>;
     async fn chapter(&self, title_id: &str, chapter_id: &str) -> AppResult<ChapterContent>;
 }

@@ -5,9 +5,10 @@ import {
   ArrowLeft, ChevronsLeft, ChevronsRight,
   Settings, HelpCircle,
 } from "lucide-react";
-import { getChapter, getTitle } from "../../ipc/sources";
+import { getChapter } from "../../ipc/sources";
 import type { ChapterContent, ChapterSummary, TitleDetail } from "../../types";
 import { toastError } from "../../stores/useToast";
+import { cachedGetTitle } from "../../stores/useCache";
 import { useReaderSettings } from "../../stores/useReaderSettings";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { useAutoHideChrome } from "../../hooks/useAutoHideChrome";
@@ -42,7 +43,7 @@ export function ReaderShell() {
     setPct(0);
     Promise.all([
       getChapter(source, id, chapter),
-      getTitle(source, id).catch(() => null),
+      cachedGetTitle(source, id).catch(() => null),
     ])
       .then(([c, t]) => {
         if (cancelled) return;

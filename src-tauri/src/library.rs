@@ -85,9 +85,19 @@ impl Library {
                 genres_json   = excluded.genres_json
             "#,
             rusqlite::params![
-                t.source, t.source_id, t.kind.as_str(), t.title, t.author,
-                t.cover_path, t.synopsis, t.status, t.original_lang, genres_json, now,
-                t.source, t.source_id
+                t.source,
+                t.source_id,
+                t.kind.as_str(),
+                t.title,
+                t.author,
+                t.cover_path,
+                t.synopsis,
+                t.status,
+                t.original_lang,
+                genres_json,
+                now,
+                t.source,
+                t.source_id
             ],
         )?;
         Ok(())
@@ -129,14 +139,14 @@ impl Library {
                 .and_then(|s| serde_json::from_str(s).ok())
                 .unwrap_or_default();
             Ok(TitleRecord {
-                source:        row.get(0)?,
-                source_id:     row.get(1)?,
-                kind:          ContentKind::parse(&row.get::<_, String>(2)?),
-                title:         row.get(3)?,
-                author:        row.get(4)?,
-                cover_path:    row.get(5)?,
-                synopsis:      row.get(6)?,
-                status:        row.get(7)?,
+                source: row.get(0)?,
+                source_id: row.get(1)?,
+                kind: ContentKind::parse(&row.get::<_, String>(2)?),
+                title: row.get(3)?,
+                author: row.get(4)?,
+                cover_path: row.get(5)?,
+                synopsis: row.get(6)?,
+                status: row.get(7)?,
                 original_lang: row.get(8)?,
                 genres,
             })
@@ -145,7 +155,11 @@ impl Library {
     }
 
     pub fn record_progress(
-        &self, source: &str, id: &str, chapter_id: &str, position_pct: f64,
+        &self,
+        source: &str,
+        id: &str,
+        chapter_id: &str,
+        position_pct: f64,
     ) -> AppResult<()> {
         let conn = self.db.conn();
         conn.execute(
@@ -173,13 +187,13 @@ impl Library {
         )?;
         let rows = stmt.query_map([limit as i64], |r| {
             Ok(ProgressRecord {
-                source:       r.get(0)?,
-                source_id:    r.get(1)?,
-                chapter_id:   r.get(2)?,
+                source: r.get(0)?,
+                source_id: r.get(1)?,
+                chapter_id: r.get(2)?,
                 position_pct: r.get(3)?,
-                updated_at:   r.get(4)?,
-                title:        r.get(5)?,
-                cover_path:   r.get(6)?,
+                updated_at: r.get(4)?,
+                title: r.get(5)?,
+                cover_path: r.get(6)?,
             })
         })?;
         Ok(rows.filter_map(Result::ok).collect())

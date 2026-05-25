@@ -10,8 +10,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            let state = reading_lib::commands::AppState::new(&app.handle())
-                .expect("AppState init");
+            let state = reading_lib::commands::AppState::new(app.handle()).expect("AppState init");
             app.manage(state);
             Ok(())
         })

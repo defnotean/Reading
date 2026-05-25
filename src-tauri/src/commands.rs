@@ -28,20 +28,28 @@ impl AppState {
         let db = Db::open(&db_path).map_err(|e| e.to_string())?;
         let library = Library::new(db.clone());
         let covers = CoverCache::new(covers_dir(&app_data));
-        let mangadex:  Arc<dyn Source> = Arc::new(MangaDex);
+        let mangadex: Arc<dyn Source> = Arc::new(MangaDex);
         let novelfire: Arc<dyn Source> = Arc::new(crate::sources::novelfire::NovelFire);
-        let generic:   Arc<dyn Source> = Arc::new(crate::sources::generic::Generic);
-        let comick:    Arc<dyn Source> = Arc::new(crate::sources::comick::ComicK);
-        Ok(Self { db, library, covers, mangadex, novelfire, generic, comick })
+        let generic: Arc<dyn Source> = Arc::new(crate::sources::generic::Generic);
+        let comick: Arc<dyn Source> = Arc::new(crate::sources::comick::ComicK);
+        Ok(Self {
+            db,
+            library,
+            covers,
+            mangadex,
+            novelfire,
+            generic,
+            comick,
+        })
     }
 }
 
 fn pick_source<'a>(state: &'a AppState, id: &str) -> Result<&'a Arc<dyn Source>, String> {
     match id {
-        "mangadex"  => Ok(&state.mangadex),
+        "mangadex" => Ok(&state.mangadex),
         "novelfire" => Ok(&state.novelfire),
-        "generic"   => Ok(&state.generic),
-        "comick"    => Ok(&state.comick),
+        "generic" => Ok(&state.generic),
+        "comick" => Ok(&state.comick),
         other => Err(format!("unknown source: {other}")),
     }
 }
@@ -57,7 +65,10 @@ async fn enrich_with_cover_path(state: &AppState, mut s: TitleSummary) -> TitleS
 
 #[tauri::command]
 pub async fn browse(
-    source: String, list: BrowseList, page: u32, state: State<'_, AppState>,
+    source: String,
+    list: BrowseList,
+    page: u32,
+    state: State<'_, AppState>,
 ) -> Result<Vec<TitleSummary>, AppError> {
     let src = pick_source(state.inner(), &source).map_err(AppError::Internal)?;
     let summaries = src.browse(list, page).await?;
@@ -70,7 +81,10 @@ pub async fn browse(
 
 #[tauri::command]
 pub async fn search(
-    source: String, q: String, page: u32, state: State<'_, AppState>,
+    source: String,
+    q: String,
+    page: u32,
+    state: State<'_, AppState>,
 ) -> Result<Vec<TitleSummary>, AppError> {
     let src = pick_source(state.inner(), &source).map_err(AppError::Internal)?;
     let summaries = src.search(&q, page).await?;
@@ -83,7 +97,9 @@ pub async fn search(
 
 #[tauri::command]
 pub async fn get_title(
-    source: String, id: String, state: State<'_, AppState>,
+    source: String,
+    id: String,
+    state: State<'_, AppState>,
 ) -> Result<TitleDetail, AppError> {
     let src = pick_source(state.inner(), &source).map_err(AppError::Internal)?;
     let mut detail = src.title(&id).await?;
@@ -92,16 +108,16 @@ pub async fn get_title(
     // Mirror into the library so it survives across launches and is browsable
     // from the Library screen even before being starred.
     let title_record = TitleRecord {
-        source:        detail.summary.source.clone(),
-        source_id:     detail.summary.source_id.clone(),
-        kind:          src.kind(),
-        title:         detail.summary.title.clone(),
-        author:        detail.summary.author.clone(),
-        cover_path:    detail.summary.cover_path.clone(),
-        synopsis:      detail.synopsis.clone(),
-        status:        detail.status.clone(),
+        source: detail.summary.source.clone(),
+        source_id: detail.summary.source_id.clone(),
+        kind: src.kind(),
+        title: detail.summary.title.clone(),
+        author: detail.summary.author.clone(),
+        cover_path: detail.summary.cover_path.clone(),
+        synopsis: detail.synopsis.clone(),
+        status: detail.status.clone(),
         original_lang: detail.original_language.clone(),
-        genres:        detail.genres.clone(),
+        genres: detail.genres.clone(),
     };
     let _ = state.library.upsert_title(&title_record);
 
@@ -110,7 +126,10 @@ pub async fn get_title(
 
 #[tauri::command]
 pub async fn get_chapter(
-    source: String, title_id: String, chapter_id: String, state: State<'_, AppState>,
+    source: String,
+    title_id: String,
+    chapter_id: String,
+    state: State<'_, AppState>,
 ) -> Result<ChapterContent, AppError> {
     let src = pick_source(state.inner(), &source).map_err(AppError::Internal)?;
     match src.chapter(&title_id, &chapter_id).await {
@@ -122,10 +141,7 @@ pub async fn get_chapter(
                 .title(&title_id)
                 .await
                 .map_err(|_| AppError::NotFound(msg.clone()))?;
-            let chapter_meta = detail
-                .chapters
-                .iter()
-                .find(|c| c.chapter_id == chapter_id);
+            let chapter_meta = detail.chapters.iter().find(|c| c.chapter_id == chapter_id);
             let chap_num = chapter_meta.and_then(|c| c.number);
             let external_url = chapter_meta
                 .and_then(|c| c.external_url.as_deref())
@@ -147,9 +163,7 @@ pub async fn get_chapter(
             // Propagate the external URL in the error message so the frontend can offer
             // "Open on publisher's site" when ComicK also fails.
             if let Some(ext) = external_url {
-                Err(AppError::NotFound(format!(
-                    "{msg}\nexternal_url={ext}"
-                )))
+                Err(AppError::NotFound(format!("{msg}\nexternal_url={ext}")))
             } else {
                 Err(AppError::NotFound(msg))
             }
@@ -165,31 +179,42 @@ pub fn library_list(state: State<'_, AppState>) -> Result<Vec<TitleRecord>, AppE
 
 #[tauri::command]
 pub fn library_set_starred(
-    source: String, id: String, starred: bool, state: State<'_, AppState>,
+    source: String,
+    id: String,
+    starred: bool,
+    state: State<'_, AppState>,
 ) -> Result<(), AppError> {
     state.library.set_starred(&source, &id, starred)
 }
 
 #[tauri::command]
 pub fn library_is_starred(
-    source: String, id: String, state: State<'_, AppState>,
+    source: String,
+    id: String,
+    state: State<'_, AppState>,
 ) -> Result<bool, AppError> {
     state.library.is_starred(&source, &id)
 }
 
 #[tauri::command]
 pub fn continue_reading(
-    state: State<'_, AppState>, limit: Option<u32>,
+    state: State<'_, AppState>,
+    limit: Option<u32>,
 ) -> Result<Vec<ProgressRecord>, AppError> {
     state.library.continue_reading(limit.unwrap_or(10))
 }
 
 #[tauri::command]
 pub fn record_progress(
-    source: String, id: String, chapter_id: String, position_pct: f64,
+    source: String,
+    id: String,
+    chapter_id: String,
+    position_pct: f64,
     state: State<'_, AppState>,
 ) -> Result<(), AppError> {
-    state.library.record_progress(&source, &id, &chapter_id, position_pct)
+    state
+        .library
+        .record_progress(&source, &id, &chapter_id, position_pct)
 }
 
 #[derive(serde::Serialize)]
@@ -202,12 +227,17 @@ pub struct GenericRouteHint {
 }
 
 #[tauri::command]
-pub async fn from_url(url: String, _state: State<'_, AppState>) -> Result<GenericRouteHint, AppError> {
-    let html = crate::http::client().get(&url).send().await?.text().await?;
+pub async fn from_url(
+    url: String,
+    _state: State<'_, AppState>,
+) -> Result<GenericRouteHint, AppError> {
+    let html = crate::http::get_user_html(&url).await?;
     let kind = crate::sources::generic::detect_kind(&html);
     let doc = Html::parse_document(&html);
     let title_sel = Selector::parse("title").map_err(|e| AppError::Parse(format!("{e:?}")))?;
-    let title = doc.select(&title_sel).next()
+    let title = doc
+        .select(&title_sel)
+        .next()
         .map(|t| t.text().collect::<String>().trim().to_string())
         .filter(|s| !s.is_empty())
         .unwrap_or_else(|| url.clone());

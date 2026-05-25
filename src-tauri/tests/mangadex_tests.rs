@@ -8,7 +8,11 @@ fn parses_browse_response_to_summaries() {
     let first = &summaries[0];
     assert_eq!(first.source, "mangadex");
     assert!(!first.title.is_empty());
-    assert!(first.cover_url.as_ref().unwrap().contains("uploads.mangadex.org"));
+    assert!(first
+        .cover_url
+        .as_ref()
+        .unwrap()
+        .contains("uploads.mangadex.org"));
 }
 
 #[test]
@@ -27,7 +31,10 @@ fn parses_feed_into_chapter_summaries() {
     // external_url is populated from attributes.externalUrl; fixture has null → all None
     let has_non_null_external = chapters.iter().any(|c| c.external_url.is_some());
     // The fixture chapters all have externalUrl: null so we expect none populated
-    assert!(!has_non_null_external, "fixture has no external chapters; external_url should all be None");
+    assert!(
+        !has_non_null_external,
+        "fixture has no external chapters; external_url should all be None"
+    );
 }
 
 #[test]

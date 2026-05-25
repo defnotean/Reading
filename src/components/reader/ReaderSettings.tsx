@@ -49,12 +49,13 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -6, scale: 0.96 }}
           transition={{ type: "spring", stiffness: 320, damping: 28 }}
-          className="absolute right-3 top-14 z-30 w-72 glass rounded-xl shadow-glow p-3 space-y-3 text-sm"
+          className="absolute left-3 right-3 top-14 z-30 sm:left-auto sm:w-72 glass rounded-xl shadow-glow p-3 space-y-3 text-sm"
         >
           {kind === "manga_pages" ? (
             <>
               <Row label="Mode">
                 <Toggle<ReadingMode>
+                  label="Mode"
                   options={[
                     { v: "paginated",  label: "Pages",      Icon: AlignJustify },
                     { v: "continuous", label: "Continuous", Icon: LayoutGrid   },
@@ -65,6 +66,7 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
               </Row>
               <Row label="Direction">
                 <Toggle
+                  label="Direction"
                   options={[
                     { v: "ltr", label: "LTR", Icon: ArrowRight      },
                     { v: "rtl", label: "RTL", Icon: ArrowLeftRight  },
@@ -75,6 +77,7 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
               </Row>
               <Row label="Fit">
                 <Toggle<FitMode>
+                  label="Fit"
                   options={[
                     { v: "width",  label: "Width",  Icon: Maximize  },
                     { v: "height", label: "Height", Icon: Minimize  },
@@ -89,6 +92,7 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
             <>
               <Row label="Mode">
                 <Toggle<ReadingMode>
+                  label="Mode"
                   options={[
                     { v: "paginated",  label: "Pages",      Icon: AlignJustify },
                     { v: "continuous", label: "Continuous", Icon: LayoutGrid   },
@@ -99,6 +103,7 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
               </Row>
               <Row label="Theme">
                 <Toggle<Theme>
+                  label="Theme"
                   options={[
                     { v: "dark",  label: "Dark",  Icon: Moon   },
                     { v: "sepia", label: "Sepia", Icon: Coffee },
@@ -110,6 +115,7 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
               </Row>
               <Row label="Font">
                 <Toggle<FontFamily>
+                  label="Font"
                   options={[
                     { v: "serif", label: "Serif", Icon: Type                    },
                     { v: "sans",  label: "Sans",  Icon: AlignVerticalSpaceAround },
@@ -120,6 +126,7 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
               </Row>
               <Row label="Size">
                 <Slider<FontSize>
+                  label="Size"
                   options={["xs", "sm", "base", "lg", "xl"]}
                   current={s.novelSize}
                   onSelect={v => s.set("novelSize", v)}
@@ -127,6 +134,7 @@ export function ReaderSettings({ open, onClose, kind }: Props) {
               </Row>
               <Row label="Spacing">
                 <Slider<LineSpacing>
+                  label="Spacing"
                   options={["tight", "normal", "loose"]}
                   current={s.novelSpacing}
                   onSelect={v => s.set("novelSpacing", v)}
@@ -156,20 +164,24 @@ interface ToggleOption<T extends string> {
 }
 
 function Toggle<T extends string>({
-  options, current, onSelect,
+  label, options, current, onSelect,
 }: {
+  label: string;
   options: ToggleOption<T>[];
   current: T;
   onSelect: (v: T) => void;
 }) {
   return (
-    <div className="flex gap-1 bg-ink-800/60 rounded-md p-0.5">
+    <div role="radiogroup" aria-label={label} className="flex gap-1 bg-ink-800/60 rounded-md p-0.5">
       {options.map(({ v, label, Icon }) => (
         <button
           key={v}
+          type="button"
+          role="radio"
+          aria-checked={current === v}
           onClick={() => onSelect(v)}
           title={label}
-          className={`px-2 py-1 rounded flex items-center gap-1 transition-colors ${
+          className={`px-2 py-1 rounded flex items-center gap-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
             current === v
               ? "bg-accent text-white"
               : "text-ink-300 hover:text-ink-100"
@@ -184,19 +196,23 @@ function Toggle<T extends string>({
 }
 
 function Slider<T extends string>({
-  options, current, onSelect,
+  label, options, current, onSelect,
 }: {
+  label: string;
   options: T[];
   current: T;
   onSelect: (v: T) => void;
 }) {
   return (
-    <div className="flex items-center gap-1 bg-ink-800/60 rounded-md p-0.5">
+    <div role="radiogroup" aria-label={label} className="flex items-center gap-1 bg-ink-800/60 rounded-md p-0.5 overflow-x-auto max-w-full">
       {options.map(o => (
         <button
           key={o}
+          type="button"
+          role="radio"
+          aria-checked={current === o}
           onClick={() => onSelect(o)}
-          className={`px-2 py-1 rounded text-xs capitalize transition-colors ${
+          className={`px-2 py-1 rounded text-xs capitalize transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
             current === o
               ? "bg-accent text-white"
               : "text-ink-300 hover:text-ink-100"

@@ -1,5 +1,5 @@
 use reading_lib::db::Db;
-use reading_lib::library::{Library, TitleRecord, ContentKind};
+use reading_lib::library::{ContentKind, Library, TitleRecord};
 
 fn sample(source: &str, id: &str) -> TitleRecord {
     TitleRecord {

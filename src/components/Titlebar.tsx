@@ -1,9 +1,21 @@
 import { BookOpen, Minus, Square, X } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-const win = getCurrentWindow();
+function getWindowControls() {
+  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
+    return null;
+  }
+
+  try {
+    return getCurrentWindow();
+  } catch {
+    return null;
+  }
+}
 
 export function Titlebar() {
+  const win = getWindowControls();
+
   return (
     <div
       className="h-9 flex items-center select-none flex-shrink-0 relative z-50"
@@ -28,29 +40,31 @@ export function Titlebar() {
       />
 
       {/* Right: window controls */}
-      <div className="flex items-center flex-shrink-0">
-        <button
-          onClick={() => void win.minimize()}
-          aria-label="Minimize"
-          className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-700/60 transition-colors focus:outline-none"
-        >
-          <Minus size={12} />
-        </button>
-        <button
-          onClick={() => void win.toggleMaximize()}
-          aria-label="Maximize"
-          className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-700/60 transition-colors focus:outline-none"
-        >
-          <Square size={11} />
-        </button>
-        <button
-          onClick={() => void win.close()}
-          aria-label="Close"
-          className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-white hover:bg-red-500/80 transition-colors focus:outline-none"
-        >
-          <X size={13} />
-        </button>
-      </div>
+      {win ? (
+        <div className="flex items-center flex-shrink-0">
+          <button
+            onClick={() => void win.minimize()}
+            aria-label="Minimize"
+            className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-700/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+          >
+            <Minus size={12} />
+          </button>
+          <button
+            onClick={() => void win.toggleMaximize()}
+            aria-label="Maximize"
+            className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-700/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+          >
+            <Square size={11} />
+          </button>
+          <button
+            onClick={() => void win.close()}
+            aria-label="Close"
+            className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-white hover:bg-red-500/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-300"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -9,7 +9,7 @@ export default function LibraryRoute() {
   useEffect(() => { void refresh(); }, [refresh]);
 
   return (
-    <div className="h-full overflow-y-auto p-8">
+    <div className="h-full overflow-y-auto p-4 sm:p-8">
       <h1 className="text-2xl font-semibold mb-6">Library</h1>
 
       {recents.length > 0 && (
@@ -73,7 +73,7 @@ export default function LibraryRoute() {
             Nothing here yet — star a title from <Link to="/" className="text-accent underline">Browse</Link>.
           </p>
         ) : (
-          <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-4">
             {items.map(t => {
               const cover = t.cover_path ? convertFileSrc(t.cover_path) : undefined;
               return (
@@ -93,8 +93,9 @@ export default function LibraryRoute() {
                     </div>
                   </Link>
                   <button
+                    aria-label={`Remove ${t.title} from library`}
                     onClick={(e) => { e.preventDefault(); void remove(t.source, t.source_id); }}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-ink-900/70 backdrop-blur px-2 py-1 rounded text-xs hover:bg-red-500/80"
+                    className="absolute top-2 right-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity bg-ink-900/70 backdrop-blur px-2 py-1 rounded text-xs hover:bg-red-500/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
                   >
                     Remove
                   </button>

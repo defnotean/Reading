@@ -2,9 +2,7 @@ use async_trait::async_trait;
 
 use crate::error::{AppError, AppResult};
 use crate::library::ContentKind;
-use crate::sources::{
-    BrowseList, ChapterContent, PageImage, Source, TitleDetail, TitleSummary,
-};
+use crate::sources::{BrowseList, ChapterContent, PageImage, Source, TitleDetail, TitleSummary};
 
 /// ComicK API base.  Historically also at api.comick.io and api.comick.fun, but those redirect
 /// to the frontend; the API is now served exclusively at api.comick.dev.
@@ -42,10 +40,13 @@ impl Source for ComicK {
         let mut url = format!("{BASE}/v1.0/search?type=comic&page={}&limit=20", page + 1);
         match &list {
             BrowseList::Trending => url.push_str("&sort=follow"),
-            BrowseList::Latest   => url.push_str("&sort=uploaded"),
+            BrowseList::Latest => url.push_str("&sort=uploaded"),
             BrowseList::Genre(name) => {
                 // ComicK uses lowercase genre slugs; common names match.
-                url.push_str(&format!("&sort=follow&genres={}", urlencoding::encode(name)));
+                url.push_str(&format!(
+                    "&sort=follow&genres={}",
+                    urlencoding::encode(name)
+                ));
             }
             BrowseList::Lang(_) => {
                 // ComicK has its own country filter; for v1, just default to follow.
@@ -113,10 +114,7 @@ pub async fn find_chapter_by_title_and_number(
     let queries: Vec<String> = {
         let full = title.to_string();
         // Also try with just the first 3+ significant words (in case of subtitle noise)
-        let words: Vec<&str> = title
-            .split_whitespace()
-            .filter(|w| w.len() >= 3)
-            .collect();
+        let words: Vec<&str> = title.split_whitespace().filter(|w| w.len() >= 3).collect();
         let short = if words.len() > 2 {
             Some(words[..words.len().min(3)].join(" "))
         } else {
@@ -162,14 +160,9 @@ pub async fn find_chapter_by_title_and_number(
             let known = s.title.to_lowercase();
             let want = title.to_lowercase();
             let loose_word_match = {
-                let want_words: Vec<&str> = want
-                    .split_whitespace()
-                    .filter(|w| w.len() >= 3)
-                    .collect();
-                let match_count = want_words
-                    .iter()
-                    .filter(|&&w| known.contains(w))
-                    .count();
+                let want_words: Vec<&str> =
+                    want.split_whitespace().filter(|w| w.len() >= 3).collect();
+                let match_count = want_words.iter().filter(|&&w| known.contains(w)).count();
                 match_count >= 2.min(want_words.len())
             };
             if !(known.contains(&want) || want.contains(&known) || loose_word_match) {
@@ -276,14 +269,8 @@ pub mod parse {
         let arr = v
             .as_array()
             .cloned()
-            .or_else(|| {
-                v.get("data")
-                    .and_then(Value::as_array)
-                    .cloned()
-            })
-            .ok_or_else(|| {
-                AppError::Parse("comick search: expected top-level array".into())
-            })?;
+            .or_else(|| v.get("data").and_then(Value::as_array).cloned())
+            .ok_or_else(|| AppError::Parse("comick search: expected top-level array".into()))?;
 
         let mut out = Vec::new();
         for item in &arr {
@@ -291,16 +278,13 @@ pub mod parse {
                 continue;
             };
             // Primary title field is `title`; fall back to first entry in `md_titles`.
-            let title = item
-                .get("title")
-                .and_then(Value::as_str)
-                .or_else(|| {
-                    item.get("md_titles")
-                        .and_then(Value::as_array)
-                        .and_then(|a| a.first())
-                        .and_then(|t| t.get("title"))
-                        .and_then(Value::as_str)
-                });
+            let title = item.get("title").and_then(Value::as_str).or_else(|| {
+                item.get("md_titles")
+                    .and_then(Value::as_array)
+                    .and_then(|a| a.first())
+                    .and_then(|t| t.get("title"))
+                    .and_then(Value::as_str)
+            });
             let Some(title) = title else { continue };
 
             // Cover: md_covers[0].b2key → https://meo.comick.pictures/{b2key}
@@ -412,9 +396,7 @@ pub mod parse {
             .and_then(Value::as_array)
             .cloned()
             .or_else(|| v.as_array().cloned())
-            .ok_or_else(|| {
-                AppError::Parse("comick chapters: no .chapters array".into())
-            })?;
+            .ok_or_else(|| AppError::Parse("comick chapters: no .chapters array".into()))?;
 
         let mut chapters: Vec<ChapterSummary> = arr
             .iter()
@@ -429,10 +411,7 @@ pub mod parse {
                     .and_then(Value::as_str)
                     .filter(|s| !s.is_empty())
                     .map(str::to_string);
-                let lang = item
-                    .get("lang")
-                    .and_then(Value::as_str)
-                    .map(str::to_string);
+                let lang = item.get("lang").and_then(Value::as_str).map(str::to_string);
                 // Prefer publish_at; fall back to created_at
                 let published_at = item
                     .get("publish_at")
@@ -469,11 +448,9 @@ pub mod parse {
     pub fn chapter_images_response(body: &str) -> AppResult<Vec<PageImage>> {
         let v: Value = serde_json::from_str(body)?;
         // Response is always a bare array from /get_images.
-        let arr = v
-            .as_array()
-            .ok_or_else(|| {
-                AppError::Parse("comick chapter images: expected top-level array".into())
-            })?;
+        let arr = v.as_array().ok_or_else(|| {
+            AppError::Parse("comick chapter images: expected top-level array".into())
+        })?;
 
         let pages: Vec<PageImage> = arr
             .iter()

@@ -1,7 +1,11 @@
 use std::path::{Path, PathBuf};
 
-use crate::error::AppResult;
+use reqwest::header::CONTENT_TYPE;
+
+use crate::error::{AppError, AppResult};
 use crate::http::client;
+
+pub const MAX_COVER_BYTES: u64 = 10 * 1024 * 1024;
 
 #[derive(Clone)]
 pub struct CoverCache {
@@ -25,7 +29,31 @@ impl CoverCache {
         if path.exists() {
             return Ok(path);
         }
-        let bytes = client().get(url).send().await?.bytes().await?;
+        let response = client().get(url).send().await?;
+        let status = response.status();
+        if !status.is_success() {
+            let body = crate::http::error_body_capped(response).await;
+            return Err(AppError::Http(format!("{status} {url}: {body}")));
+        }
+        if let Some(content_type) = response.headers().get(CONTENT_TYPE) {
+            let content_type = content_type
+                .to_str()
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+            if !content_type.starts_with("image/") {
+                return Err(AppError::Blocked(format!(
+                    "cover response is not an image: {content_type}"
+                )));
+            }
+        }
+        if let Some(len) = response.content_length() {
+            if len > MAX_COVER_BYTES {
+                return Err(AppError::Blocked(format!(
+                    "cover exceeds {MAX_COVER_BYTES} bytes"
+                )));
+            }
+        }
+        let bytes = crate::http::read_response_capped(response, MAX_COVER_BYTES).await?;
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)?;
         }

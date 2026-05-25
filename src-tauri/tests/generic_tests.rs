@@ -1,5 +1,5 @@
-use reading_lib::sources::generic::{detect_kind, parse_novel, parse_manga};
 use reading_lib::library::ContentKind;
+use reading_lib::sources::generic::{detect_kind, parse_manga, parse_novel};
 
 #[test]
 fn detects_novel_html_as_novel() {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import type { ChapterSummary } from "../../types";
@@ -27,6 +27,7 @@ export function ChapterPicker({
 }: Props) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const currentRef = useRef<HTMLButtonElement>(null);
 
@@ -54,7 +55,7 @@ export function ChapterPicker({
 
   // Scroll current item into view when dropdown opens
   useEffect(() => {
-    if (open && currentRef.current) {
+    if (open && currentRef.current?.scrollIntoView) {
       currentRef.current.scrollIntoView({ block: "center" });
     }
   }, [open]);
@@ -72,8 +73,11 @@ export function ChapterPicker({
     <div ref={containerRef} className="relative min-w-0">
       <button
         type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={listboxId}
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-ink-700/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent max-w-[220px] min-w-0"
+        className="flex items-center gap-1 rounded-md px-1.5 py-0.5 hover:bg-ink-700/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent max-w-[min(220px,60vw)] min-w-0"
       >
         <span className="text-xs text-ink-400 truncate leading-tight">{label}</span>
         <ChevronDown
@@ -84,8 +88,11 @@ export function ChapterPicker({
 
       {open && (
         <div
-          className="absolute top-full left-0 mt-1 w-72 max-h-[60vh] overflow-y-auto z-50 rounded-lg glass border border-ink-700/60 shadow-2xl py-1"
-          style={{ minWidth: "200px" }}
+          id={listboxId}
+          role="listbox"
+          aria-label="Chapters"
+          className="absolute top-full left-0 mt-1 w-[min(18rem,calc(100vw-1.5rem))] max-h-[60vh] overflow-y-auto z-50 rounded-lg glass border border-ink-700/60 shadow-2xl py-1"
+          style={{ minWidth: "min(200px, calc(100vw - 1.5rem))" }}
         >
           {chapters.length === 0 ? (
             <p className="px-3 py-2 text-xs text-ink-400">No chapters available.</p>
@@ -97,6 +104,8 @@ export function ChapterPicker({
                   key={ch.chapter_id}
                   ref={isCurrent ? currentRef : undefined}
                   type="button"
+                  role="option"
+                  aria-selected={isCurrent}
                   onClick={() => select(ch)}
                   className={`w-full text-left px-3 py-2 text-xs flex items-baseline gap-2 hover:bg-ink-700/40 transition-colors ${
                     isCurrent

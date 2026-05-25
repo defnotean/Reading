@@ -6,27 +6,36 @@ This is **Phase 1**: browse + library only. Audio comes in Phase 3.
 
 ## Develop
 
-Prereqs: Node 22 LTS, pnpm 9+, Rust 1.79+, Visual Studio Build Tools 2022 with the C++ workload, Windows 10/11.
+Prereqs: Node 22 LTS, pnpm 10+, Rust 1.79+, Visual Studio Build Tools 2022 with the C++ workload, Windows 10/11.
+Rust is required for Tauri development and for the backend test suite.
 
 ```powershell
 pnpm install
-pnpm tauri dev
+pnpm run dev:tauri
 ```
 
 ## Tests
 
 ```powershell
 # Frontend
-pnpm exec vitest run
+pnpm test
+pnpm run typecheck
+pnpm run build
 
 # Rust
 cd src-tauri ; cargo test ; cd ..
 ```
 
+Run the full frontend gate with:
+
+```powershell
+pnpm run check
+```
+
 ## Build
 
 ```powershell
-pnpm tauri build
+pnpm run build:tauri
 ```
 
 Output is at `src-tauri/target/release/bundle/`.

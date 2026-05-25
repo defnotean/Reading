@@ -4,11 +4,17 @@ use reading_lib::sources::comick::parse;
 fn parses_search_into_summaries() {
     let raw = std::fs::read_to_string("fixtures/comick_search.json").unwrap();
     let summaries = parse::search_response(&raw).unwrap();
-    assert!(!summaries.is_empty(), "search should return at least one comic");
+    assert!(
+        !summaries.is_empty(),
+        "search should return at least one comic"
+    );
     let first = &summaries[0];
     assert_eq!(first.source, "comick");
     assert!(!first.title.is_empty());
-    assert!(!first.source_id.is_empty(), "source_id should be the comic hid");
+    assert!(
+        !first.source_id.is_empty(),
+        "source_id should be the comic hid"
+    );
     // Cover URL should point to the ComicK CDN
     if let Some(url) = &first.cover_url {
         assert!(
@@ -31,14 +37,20 @@ fn parses_chapters_into_chapter_summaries() {
     let numbered: Vec<f32> = chapters.iter().filter_map(|c| c.number).collect();
     let mut sorted = numbered.clone();
     sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    assert_eq!(numbered, sorted, "chapters should be sorted ascending by number");
+    assert_eq!(
+        numbered, sorted,
+        "chapters should be sorted ascending by number"
+    );
 }
 
 #[test]
 fn parses_chapter_into_pages() {
     let raw = std::fs::read_to_string("fixtures/comick_chapter.json").unwrap();
     let pages = parse::chapter_images_response(&raw).unwrap();
-    assert!(!pages.is_empty(), "chapter images response should have at least one page");
+    assert!(
+        !pages.is_empty(),
+        "chapter images response should have at least one page"
+    );
     assert!(
         pages[0].url.starts_with("https://"),
         "page URL should be absolute https, got: {}",

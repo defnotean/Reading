@@ -51,8 +51,8 @@ export const useCache = create<CacheState>((set, get) => ({
 import { browse as ipBrowse, getTitle as ipGetTitle } from "../ipc/sources";
 import type { BrowseList, TitleDetail, TitleSummary } from "../types";
 
-function browseKey(source: string, list: BrowseList): string {
-  return JSON.stringify({ source, list });
+function browseKey(source: string, list: BrowseList, page: number): string {
+  return JSON.stringify({ source, list, page });
 }
 
 function titleKey(source: string, id: string): string {
@@ -70,7 +70,7 @@ export async function cachedBrowse(
   page = 0,
 ): Promise<TitleSummary[]> {
   const cache = useCache.getState();
-  const key = browseKey(source, list);
+  const key = browseKey(source, list, page);
   const cached = cache.get<TitleSummary[]>("browse", key);
 
   if (cached !== null) {
