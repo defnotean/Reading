@@ -16,3 +16,15 @@ test("NovelReader paginates and shows page count", () => {
   fireEvent.click(screen.getByLabelText(/next page/i));
   expect(screen.getByText(/page 2 of \d+/i)).toBeInTheDocument();
 });
+
+test("NovelReader paginated mode uses mobile-friendly page padding", () => {
+  render(<NovelReader source="nf" titleId="t" chapterId="c" paragraphs={paragraphs} plain={paragraphs.join("\n\n")} mode="paginated" />);
+
+  expect(screen.getByTestId("novel-page-scroll")).toHaveClass("px-5", "sm:px-12");
+});
+
+test("NovelReader continuous mode uses mobile-friendly prose padding", () => {
+  render(<NovelReader source="nf" titleId="t" chapterId="c" paragraphs={paragraphs} plain={paragraphs.join("\n\n")} mode="continuous" />);
+
+  expect(screen.getByTestId("novel-continuous-prose")).toHaveClass("px-5", "sm:px-12");
+});

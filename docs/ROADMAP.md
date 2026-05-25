@@ -30,7 +30,7 @@ Shipped on top of the original Phase 1/2 plans:
 
 In recommended order:
 
-1. **GitHub Actions CI** - `.github/workflows/` exists but is empty. Add Windows CI for `pnpm check` + `cargo test` + `cargo clippy`, then Tauri build on tag.
+1. **GitHub Actions CI** - implement the workflow planned in [`docs/superpowers/plans/2026-05-25-cross-platform-mobile-linux.md`](superpowers/plans/2026-05-25-cross-platform-mobile-linux.md): Windows/Linux quality gates for `pnpm check` + `cargo test` + `cargo clippy`, plus a manual/tag-only Linux Tauri bundle job that asserts and uploads `.deb`, `.AppImage`, or `.rpm` artifacts.
 2. **Draft `phase-3-audio.md`** - decompose spec section 6 (Kokoro + rodio + emotion + audio state machine) and section 7.4 (auto-play UI, karaoke highlight, scrubber, voice picker, emotion slider) into TDD slices. Strategy: build the state machine + IPC events + frontend controls against a **fake audio driver** first, then wire in real Kokoro ONNX.
 3. **Phase 2 polish folded into Phase 3 prep** - virtualize `ChapterList.tsx`, add an "All" source tab, add explicit refresh buttons where useful, and clarify Title Detail CTAs before audio controls make the reader surface busier.
 

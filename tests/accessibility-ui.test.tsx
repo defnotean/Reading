@@ -87,6 +87,19 @@ test("toasts announce their message and expose labelled dismiss buttons", () => 
   expect(screen.getByRole("button", { name: /dismiss Saved to library notification/i })).toBeInTheDocument();
 });
 
+test("toast stack clears the mobile bottom navigation", () => {
+  useToast.setState({
+    toasts: [{ id: 1, kind: "info", message: "Settings saved" }],
+  });
+
+  render(<Toaster />);
+
+  expect(screen.getByTestId("toaster-stack")).toHaveClass(
+    "bottom-[calc(5.25rem+env(safe-area-inset-bottom))]",
+    "sm:bottom-6"
+  );
+});
+
 test("reader settings expose labelled radiogroups for toggles and discrete sliders", () => {
   render(<ReaderSettings open onClose={vi.fn()} kind="novel_text" />);
 

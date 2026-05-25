@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { LeftRail } from "../src/components/LeftRail";
 
-test("LeftRail renders three labelled destinations", () => {
+test("LeftRail renders three labelled desktop destinations", () => {
   render(
     <MemoryRouter initialEntries={["/"]}>
       <LeftRail />

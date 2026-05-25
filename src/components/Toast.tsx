@@ -7,7 +7,10 @@ const ICON = { error: AlertCircle, info: Info, success: CheckCircle2 } as const;
 export function Toaster() {
   const { toasts, dismiss } = useToast();
   return (
-    <div className="fixed bottom-4 left-3 right-3 sm:bottom-6 sm:left-auto sm:right-6 flex flex-col gap-2 z-50 pointer-events-none">
+    <div
+      data-testid="toaster-stack"
+      className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] left-3 right-3 sm:bottom-6 sm:left-auto sm:right-6 flex flex-col gap-2 z-50 pointer-events-none"
+    >
       <AnimatePresence>
         {toasts.map(t => {
           const Icon = ICON[t.kind];

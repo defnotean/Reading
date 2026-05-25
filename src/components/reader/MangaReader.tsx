@@ -58,7 +58,7 @@ export function MangaReader({
     );
 }
 
-// ── Paginated ──────────────────────────────────────────────────────────────
+// Paginated
 
 interface PaginatedProps {
   source: string;
@@ -74,6 +74,7 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
   const [index, setIndex] = useState(0);
   // Track direction of last navigation for animation
   const lastDirRef = useRef<"forward" | "backward">("forward");
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const total = pages.length;
 
   useEffect(() => {
@@ -109,6 +110,28 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
     ArrowRight: () => arrowRight(),
   }, [index, total, direction]);
 
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY };
+  }
+
+  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    const start = pointerStartRef.current;
+    pointerStartRef.current = null;
+    if (!start) return;
+
+    const deltaX = e.clientX - start.x;
+    const deltaY = e.clientY - start.y;
+    const absDeltaX = Math.abs(deltaX);
+
+    if (absDeltaX < 48 || absDeltaX <= Math.abs(deltaY)) return;
+    if (deltaX < 0) arrowRight();
+    else arrowLeft();
+  }
+
+  function onPointerCancel() {
+    pointerStartRef.current = null;
+  }
+
   const page = pages[index];
 
   // Slide direction for animation
@@ -127,11 +150,17 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
 
   // For overflow scroll in "height" and "actual" fit modes
   const containerClass = fit === "width"
-    ? "relative h-full w-full bg-ink-950 overflow-hidden"
-    : "relative h-full w-full bg-ink-950 overflow-auto";
+    ? "relative h-full w-full bg-ink-950 overflow-hidden touch-pan-y"
+    : "relative h-full w-full bg-ink-950 overflow-auto touch-pan-y";
 
   return (
-    <div className={containerClass}>
+    <div
+      data-testid="manga-page-stage"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      className={containerClass}
+    >
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.div
           key={`${chapterId}_${index}`}
@@ -159,7 +188,7 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
         aria-label={leftZoneLabel}
         disabled={!leftZoneAvailable}
         tabIndex={leftZoneAvailable ? 0 : -1}
-        className="absolute left-0 top-0 h-full w-1/3 focus-ring group z-10 disabled:pointer-events-none"
+        className="absolute left-0 top-0 h-full w-1/3 focus-ring group z-10 touch-manipulation disabled:pointer-events-none"
       >
         <ChevronLeft
           className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-300/60 group-hover:text-ink-100 transition-colors"
@@ -174,7 +203,7 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
         aria-label={rightZoneLabel}
         disabled={!rightZoneAvailable}
         tabIndex={rightZoneAvailable ? 0 : -1}
-        className="absolute right-0 top-0 h-full w-1/3 focus-ring group z-10 disabled:pointer-events-none"
+        className="absolute right-0 top-0 h-full w-1/3 focus-ring group z-10 touch-manipulation disabled:pointer-events-none"
       >
         <ChevronRight
           className="absolute right-4 top-1/2 -translate-y-1/2 text-ink-300/60 group-hover:text-ink-100 transition-colors"
@@ -199,7 +228,7 @@ function MangaPaginated({ source, titleId, chapterId, pages, direction, fit, onP
   );
 }
 
-// ── Continuous ─────────────────────────────────────────────────────────────
+// Continuous
 
 interface ContinuousProps {
   source: string;

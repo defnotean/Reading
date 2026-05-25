@@ -41,7 +41,7 @@ function proseClasses(font: FontFamily, size: FontSize, spacing: LineSpacing): s
   ].join(" ");
 }
 
-// ── Paginated ──────────────────────────────────────────────────────────────
+// Paginated
 
 function NovelPaginated({
   source, titleId, chapterId, paragraphs,
@@ -81,7 +81,10 @@ function NovelPaginated({
 
   return (
     <div className="relative h-full w-full">
-      <div className="absolute inset-0 overflow-y-auto px-12 py-8">
+      <div
+        data-testid="novel-page-scroll"
+        className="absolute inset-0 overflow-y-auto px-5 sm:px-12 py-6 sm:py-8"
+      >
         <AnimatePresence mode="wait" initial={false}>
           <motion.article
             key={index}
@@ -124,7 +127,7 @@ function NovelPaginated({
   );
 }
 
-// ── Continuous ─────────────────────────────────────────────────────────────
+// Continuous
 
 function NovelContinuous({
   source, titleId, chapterId, paragraphs,
@@ -149,7 +152,10 @@ function NovelContinuous({
 
   return (
     <div onScroll={onScroll} className="h-full w-full overflow-y-auto">
-      <article className={`${prose} px-12 py-10`}>
+      <article
+        data-testid="novel-continuous-prose"
+        className={`${prose} px-5 sm:px-12 py-7 sm:py-10`}
+      >
         {paragraphs.map((p, i) => (
           <p key={i} className="whitespace-pre-line">{p}</p>
         ))}

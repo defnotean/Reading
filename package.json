@@ -12,6 +12,9 @@
     "check": "pnpm run typecheck && pnpm test && pnpm run build",
     "dev:tauri": "tauri dev",
     "build:tauri": "tauri build",
+    "android:init": "tauri android init --ci",
+    "android:dev": "tauri android dev",
+    "android:build": "tauri android build --ci",
     "preview": "vite preview",
     "tauri": "tauri"
   },
