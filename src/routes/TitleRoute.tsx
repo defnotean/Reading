@@ -16,6 +16,7 @@ export default function TitleRoute() {
   const [detail, setDetail] = useState<TitleDetail | null>(null);
   const [starred, setStarredState] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   function goBack() {
     // Skip Reader/Title detours: jump straight to the list view the user
@@ -29,9 +30,15 @@ export default function TitleRoute() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(null);
     Promise.all([cachedGetTitle(source, id), isStarred(source, id)])
       .then(([d, s]) => { if (!cancelled) { setDetail(d); setStarredState(s); }})
-      .catch(e => { if (!cancelled) toastError(e.message ?? String(e)); })
+      .catch(e => { if (!cancelled) {
+        const message = e?.message ?? String(e);
+        setError(message);
+        setDetail(null);
+        toastError(message);
+      }})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [source, id]);
@@ -43,7 +50,7 @@ export default function TitleRoute() {
     catch (e: any) { toastError(e.message ?? String(e)); setStarredState(!next); }
   }
 
-  if (loading || !detail) {
+  if (loading) {
     return (
       <div className="h-full">
         <header className="px-6 pt-4">
@@ -56,6 +63,28 @@ export default function TitleRoute() {
           </button>
         </header>
         <div className="p-8 text-ink-300 text-sm">Loading…</div>
+      </div>
+    );
+  }
+
+  if (error || !detail) {
+    return (
+      <div className="h-full">
+        <header className="px-6 pt-4">
+          <button
+            onClick={goBack}
+            className="rounded-md px-2.5 py-1.5 glass hover:bg-ink-700/60 focus-ring flex items-center gap-1.5 text-sm text-ink-200"
+          >
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+        </header>
+        <div className="p-8">
+          <div className="max-w-xl rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+            <h1 className="text-lg font-semibold text-ink-100">Could not load title</h1>
+            <p className="mt-2 text-sm text-ink-300">{error ?? "Title details were unavailable."}</p>
+          </div>
+        </div>
       </div>
     );
   }

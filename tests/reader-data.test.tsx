@@ -62,3 +62,19 @@ test("ReaderShell reuses cached title metadata when navigating chapters", async 
   });
   expect(getTitleMock).toHaveBeenCalledTimes(1);
 });
+
+test("ReaderShell shows an error state when chapter loading fails", async () => {
+  getChapterMock.mockRejectedValue(new Error("chapter unavailable"));
+
+  render(
+    <MemoryRouter initialEntries={["/r/mangadex/title-1/chapter-1"]}>
+      <Routes>
+        <Route path="/r/:source/:id/:chapter" element={<ReaderShell />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  expect(await screen.findByText(/could not load chapter/i)).toBeInTheDocument();
+  expect(screen.getByText(/chapter unavailable/i)).toBeInTheDocument();
+  expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+});

@@ -29,6 +29,7 @@ export function ReaderShell() {
   const [content, setContent] = useState<ChapterContent | null>(null);
   const [title, setTitle] = useState<TitleDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [pct, setPct] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -40,6 +41,7 @@ export function ReaderShell() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError(null);
     setPct(0);
     Promise.all([
       getChapter(source, id, chapter),
@@ -50,7 +52,12 @@ export function ReaderShell() {
         setContent(c);
         setTitle(t);
       })
-      .catch(e => { if (!cancelled) toastError(e?.message ?? String(e)); })
+      .catch(e => { if (!cancelled) {
+        const message = e?.message ?? String(e);
+        setContent(null);
+        setError(message);
+        toastError(message);
+      }})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [source, id, chapter]);
@@ -237,8 +244,15 @@ export function ReaderShell() {
 
       {/* Main reader area */}
       <div className="flex-1 overflow-hidden relative">
-        {loading || !content ? (
-          <div className="h-full flex items-center justify-center text-ink-300 text-sm">Loading…</div>
+        {loading ? (
+          <div className="h-full flex items-center justify-center text-ink-300 text-sm">Loading...</div>
+        ) : error || !content ? (
+          <div className="h-full flex items-center justify-center p-6">
+            <div className="max-w-xl rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-center">
+              <h1 className="text-lg font-semibold text-ink-100">Could not load chapter</h1>
+              <p className="mt-2 text-sm text-ink-300">{error ?? "Chapter content was unavailable."}</p>
+            </div>
+          </div>
         ) : content.kind === "manga_pages" ? (
           <MangaReader
             source={source}

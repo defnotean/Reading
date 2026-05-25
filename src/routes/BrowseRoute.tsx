@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { BookOpen, Feather, Library, Search, X } from "lucide-react";
 import { search as ipcSearch } from "../ipc/sources";
 import type { BrowseList, TitleSummary } from "../types";
 import { CoverGrid } from "../components/CoverGrid";
@@ -12,11 +12,11 @@ type SourceId = "mangadex" | "novelfire" | "comick";
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_SEARCH_LENGTH = 3;
 
-const SOURCES: { id: SourceId; label: string }[] = [
-  { id: "mangadex",  label: "MangaDex"  },
-  { id: "novelfire", label: "NovelFire" },
-  { id: "comick",    label: "ComicK"    },
-];
+const SOURCES = [
+  { id: "mangadex",  label: "MangaDex",  Icon: BookOpen },
+  { id: "novelfire", label: "NovelFire", Icon: Feather },
+  { id: "comick",    label: "ComicK",    Icon: Library },
+] as const;
 
 interface Section { id: string; label: string; list: BrowseList; }
 
@@ -90,36 +90,66 @@ export default function BrowseRoute() {
     source === "mangadex"  ? MANGADEX_SECTIONS  :
     source === "comick"    ? COMICK_SECTIONS    :
                              NOVELFIRE_SECTIONS;
+  const panelId = `source-panel-${source}`;
 
   return (
     <div className="h-full overflow-y-auto">
-      <header className="sticky top-0 z-10 glass border-b border-ink-700/40 px-6 py-3 flex items-center gap-4">
-        <div className="flex bg-ink-800/60 rounded-md p-0.5 text-sm">
-          {SOURCES.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSource(s.id)}
-              className={`px-3 py-1 rounded transition-colors ${source === s.id ? "bg-accent text-white" : "text-ink-300 hover:text-ink-100"}`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-        <div className="ml-auto flex items-center gap-3">
-          <PasteUrlBar />
-          <div className="relative">
-            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-300" />
-            <input
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder={`Search ${sourceLabel}...`}
-              className="bg-ink-800/60 rounded-md pl-8 pr-3 py-1.5 text-sm w-64 outline-none border border-ink-700/40 focus:border-accent"
-            />
+      <header className="sticky top-0 z-10 glass border-b border-ink-700/40 px-4 py-3 sm:px-6">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div role="tablist" aria-label="Content sources" className="flex w-full overflow-x-auto rounded-md bg-ink-900/70 p-1 text-sm sm:w-auto">
+            {SOURCES.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={source === id}
+                aria-controls={panelId}
+                id={`source-tab-${id}`}
+                onClick={() => setSource(id)}
+                className={`min-w-28 flex-none px-3 py-2 rounded flex items-center justify-center gap-2 transition-colors focus-ring ${
+                  source === id
+                    ? "bg-accent text-white shadow-glow"
+                    : "text-ink-300 hover:text-ink-100 hover:bg-ink-700/60"
+                }`}
+              >
+                <Icon size={15} aria-hidden="true" className="flex-shrink-0" />
+                <span className="truncate">{label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:ml-auto">
+            <PasteUrlBar />
+            <div className="relative w-full sm:w-64">
+              <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-300" aria-hidden="true" />
+              <input
+                aria-label={`Search ${sourceLabel}`}
+                value={q}
+                onChange={e => setQ(e.target.value)}
+                placeholder={`Search ${sourceLabel}...`}
+                className="bg-ink-800/70 rounded-md pl-8 pr-9 py-2 text-sm w-full outline-none border border-ink-700/60 focus:border-accent focus:ring-1 focus:ring-accent/50"
+              />
+              {q && (
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={() => setQ("")}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-1.5 text-ink-300 hover:text-ink-100 hover:bg-ink-700/80 focus-ring"
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="p-6 space-y-8">
+      <div
+        id={panelId}
+        role="tabpanel"
+        aria-labelledby={`source-tab-${source}`}
+        className="p-4 space-y-8 sm:p-6"
+      >
         {hasSearchQuery ? (
           searchLoading ? (
             <SkeletonGrid />

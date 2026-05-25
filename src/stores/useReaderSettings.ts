@@ -8,6 +8,17 @@ export type FontFamily       = "sans" | "serif";
 export type FontSize         = "xs" | "sm" | "base" | "lg" | "xl";
 export type LineSpacing      = "tight" | "normal" | "loose";
 
+type SettingKey =
+  | "mangaMode"
+  | "mangaDirection"
+  | "mangaFit"
+  | "novelMode"
+  | "novelTheme"
+  | "novelFont"
+  | "novelSize"
+  | "novelSpacing"
+  | "hintSeen";
+
 interface State {
   // Manga
   mangaMode:      ReadingMode;
@@ -22,7 +33,7 @@ interface State {
   // Cross-cutting
   hintSeen:       boolean;
 
-  set:                  <K extends keyof State>(k: K, v: State[K]) => void;
+  set:                  <K extends SettingKey>(k: K, v: State[K]) => void;
   toggleMangaMode:      () => void;
   toggleNovelMode:      () => void;
   toggleMangaDirection: () => void;
@@ -30,6 +41,7 @@ interface State {
   cycleTheme:           () => void;
   cycleFontSize:        () => void;
   cycleSpacing:         () => void;
+  reset:                () => void;
 }
 
 const KEY = "reading.settings.v1";
@@ -116,6 +128,10 @@ export const useReaderSettings = create<State>((set, get) => {
       const order: LineSpacing[] = ["tight", "normal", "loose"];
       const i = order.indexOf(get().novelSpacing);
       set({ novelSpacing: order[(i + 1) % order.length] });
+      persist(get());
+    },
+    reset: () => {
+      set(defaults);
       persist(get());
     },
   };

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ExternalLink } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import type { ChapterSummary, TitleSummary } from "../types";
+import { toastError } from "../stores/useToast";
 
 export function ChapterList({
   summary, chapters, from,
@@ -9,6 +10,15 @@ export function ChapterList({
   if (chapters.length === 0) {
     return <p className="text-ink-300 text-sm">No chapters available.</p>;
   }
+
+  async function openExternal(url: string) {
+    try {
+      await openUrl(url);
+    } catch (e: any) {
+      toastError(e?.message ?? String(e));
+    }
+  }
+
   return (
     <ul className="divide-y divide-ink-700/40 rounded-lg overflow-hidden glass">
       {chapters.map(c => (
@@ -16,7 +26,7 @@ export function ChapterList({
           {c.external_url ? (
             <button
               type="button"
-              onClick={() => openUrl(c.external_url!)}
+              onClick={() => void openExternal(c.external_url!)}
               className="w-full flex items-baseline gap-3 px-4 py-2.5 hover:bg-ink-700/40 focus-ring text-left"
             >
               <span className="text-accent text-sm font-mono w-12">

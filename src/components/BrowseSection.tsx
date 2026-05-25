@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cachedBrowse } from "../stores/useCache";
 import type { BrowseList, TitleSummary } from "../types";
 import { CoverCard } from "./CoverCard";
-import { toastError } from "../stores/useToast";
 
 interface Props {
   source: string;
@@ -18,6 +17,7 @@ export function BrowseSection({ source, list, label }: Props) {
   const [items, setItems] = useState<TitleSummary[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Lazy load: only fetch when section enters viewport
   useEffect(() => {
@@ -34,10 +34,11 @@ export function BrowseSection({ source, list, label }: Props) {
     if (!visible || items !== null) return;
     let cancelled = false;
     setLoading(true);
+    setError(null);
     cachedBrowse(source, list, 0)
       .then(rows => { if (!cancelled) setItems(rows); })
       .catch(e => { if (!cancelled) {
-        toastError(`${label}: ${e?.message ?? String(e)}`);
+        setError(readableError(e));
         setItems([]);
       }})
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -48,6 +49,7 @@ export function BrowseSection({ source, list, label }: Props) {
   useEffect(() => {
     setItems(null);
     setVisible(false);
+    setError(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source, JSON.stringify(list)]);
 
@@ -93,6 +95,11 @@ export function BrowseSection({ source, list, label }: Props) {
               className="snap-start flex-shrink-0 w-40 aspect-[2/3] rounded-lg bg-gradient-to-br from-ink-800 via-ink-700 to-ink-800 bg-[length:200%_100%] animate-shimmer"
             />
           ))
+        ) : error ? (
+          <div className="min-w-72 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm">
+            <p className="font-medium text-ink-100">Could not load {label}</p>
+            <p className="mt-1 text-ink-300">{error}</p>
+          </div>
         ) : items.length === 0 ? (
           <p className="text-ink-300 text-sm py-8">Nothing here.</p>
         ) : (
@@ -105,4 +112,11 @@ export function BrowseSection({ source, list, label }: Props) {
       </div>
     </section>
   );
+}
+
+function readableError(e: unknown): string {
+  const message = e instanceof Error ? e.message : String(e);
+  return message.includes("reading 'invoke'")
+    ? "Desktop runtime unavailable for live source loading."
+    : message;
 }
