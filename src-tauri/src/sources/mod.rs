@@ -61,6 +61,63 @@ pub enum ChapterContent {
     },
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SourceCapabilities {
+    pub source: String,
+    pub content_kind: String,
+    pub browse: bool,
+    pub search: bool,
+    pub title_detail: bool,
+    pub chapter_content: bool,
+    pub external_chapters: bool,
+    pub public_store_safe: bool,
+}
+
+pub fn source_capabilities() -> Vec<SourceCapabilities> {
+    vec![
+        SourceCapabilities {
+            source: "comick".into(),
+            content_kind: "manga".into(),
+            browse: true,
+            search: true,
+            title_detail: true,
+            chapter_content: true,
+            external_chapters: false,
+            public_store_safe: false,
+        },
+        SourceCapabilities {
+            source: "generic".into(),
+            content_kind: "manga_or_novel".into(),
+            browse: false,
+            search: false,
+            title_detail: true,
+            chapter_content: true,
+            external_chapters: false,
+            public_store_safe: false,
+        },
+        SourceCapabilities {
+            source: "mangadex".into(),
+            content_kind: "manga".into(),
+            browse: true,
+            search: true,
+            title_detail: true,
+            chapter_content: true,
+            external_chapters: true,
+            public_store_safe: false,
+        },
+        SourceCapabilities {
+            source: "novelfire".into(),
+            content_kind: "novel".into(),
+            browse: true,
+            search: true,
+            title_detail: true,
+            chapter_content: true,
+            external_chapters: false,
+            public_store_safe: false,
+        },
+    ]
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BrowseList {

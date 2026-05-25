@@ -8,7 +8,8 @@ use crate::db::Db;
 use crate::error::AppError;
 use crate::library::{ContentKind, Library, ProgressRecord, TitleRecord};
 use crate::sources::{
-    mangadex::MangaDex, BrowseList, ChapterContent, Source, TitleDetail, TitleSummary,
+    mangadex::MangaDex, BrowseList, ChapterContent, Source, SourceCapabilities, TitleDetail,
+    TitleSummary,
 };
 
 pub struct AppState {
@@ -52,6 +53,11 @@ fn pick_source<'a>(state: &'a AppState, id: &str) -> Result<&'a Arc<dyn Source>,
         "comick" => Ok(&state.comick),
         other => Err(format!("unknown source: {other}")),
     }
+}
+
+#[tauri::command]
+pub fn source_capabilities() -> Vec<SourceCapabilities> {
+    crate::sources::source_capabilities()
 }
 
 async fn enrich_with_cover_path(state: &AppState, mut s: TitleSummary) -> TitleSummary {

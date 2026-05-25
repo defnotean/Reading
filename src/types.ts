@@ -43,6 +43,17 @@ export type ChapterContent =
   | { kind: "manga_pages"; pages: PageImage[] }
   | { kind: "novel_text"; plain: string; paragraphs: string[] };
 
+export interface SourceCapabilities {
+  source: string;
+  content_kind: "manga" | "novel" | "manga_or_novel";
+  browse: boolean;
+  search: boolean;
+  title_detail: boolean;
+  chapter_content: boolean;
+  external_chapters: boolean;
+  public_store_safe: boolean;
+}
+
 export interface TitleRecord {
   source: string;
   source_id: string;

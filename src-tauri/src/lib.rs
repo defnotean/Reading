@@ -29,6 +29,7 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            commands::source_capabilities,
             commands::browse,
             commands::search,
             commands::get_title,

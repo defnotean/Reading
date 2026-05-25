@@ -1,7 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
-  BrowseList, ChapterContent, TitleDetail, TitleSummary,
+  BrowseList, ChapterContent, SourceCapabilities, TitleDetail, TitleSummary,
 } from "../types";
+
+export async function sourceCapabilities(): Promise<SourceCapabilities[]> {
+  return invoke("source_capabilities");
+}
 
 export async function browse(
   source: string, list: BrowseList, page = 0,
