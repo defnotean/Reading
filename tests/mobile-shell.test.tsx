@@ -4,10 +4,23 @@ import { BottomNav } from "../src/components/BottomNav";
 import { LeftRail } from "../src/components/LeftRail";
 import { Shell } from "../src/components/Shell";
 
+const desktopUserAgent = navigator.userAgent;
+
 function LocationProbe() {
   const location = useLocation();
   return <p data-testid="path">{location.pathname}</p>;
 }
+
+function setUserAgent(userAgent: string) {
+  Object.defineProperty(navigator, "userAgent", {
+    value: userAgent,
+    configurable: true,
+  });
+}
+
+afterEach(() => {
+  setUserAgent(desktopUserAgent);
+});
 
 test("BottomNav renders touch primary destinations", () => {
   render(
@@ -75,4 +88,23 @@ test("Shell mounts mobile navigation, desktop chrome wrapper, and safe-area cont
     "pb-[calc(4.25rem+env(safe-area-inset-bottom))]",
     "md:pb-0"
   );
+});
+
+test("Shell keeps mobile chrome on Android even at tablet landscape widths", () => {
+  setUserAgent("Mozilla/5.0 (Linux; Android 15; Pixel Tablet) AppleWebKit/537.36");
+
+  render(
+    <MemoryRouter initialEntries={["/"]}>
+      <Routes>
+        <Route path="/" element={<Shell />}>
+          <Route index element={<p>Browse content</p>} />
+        </Route>
+      </Routes>
+    </MemoryRouter>
+  );
+
+  expect(screen.getByLabelText(/mobile primary/i)).not.toHaveClass("md:hidden");
+  expect(screen.getByLabelText(/desktop primary/i)).not.toHaveClass("md:flex");
+  expect(screen.getByTestId("desktop-titlebar-wrapper")).not.toHaveClass("md:block");
+  expect(screen.getByTestId("shell-content-frame")).not.toHaveClass("md:pb-0");
 });

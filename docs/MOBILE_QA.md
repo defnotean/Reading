@@ -15,7 +15,9 @@ Use this checklist for every internal Android build and for the first iOS build 
 - App opens without a blank screen.
 - Bottom navigation is visible.
 - Desktop titlebar controls are not visible.
+- Desktop left rail is not visible.
 - Safe-area padding keeps controls above system navigation.
+- On Android tablet or landscape widths, bottom navigation remains visible and desktop titlebar/rail remain hidden.
 
 ## Browse And Search
 
@@ -33,6 +35,8 @@ Use this checklist for every internal Android build and for the first iOS build 
 - Novel paginated reader fits text without horizontal overflow.
 - Novel continuous reader keeps readable margins.
 - Reader settings remain reachable and do not overflow.
+- After reader chrome auto-hides, tap or touch restores the controls.
+- Touch/coarse-pointer devices never hide the cursor as a desktop hover affordance.
 
 ## Library And Persistence
 

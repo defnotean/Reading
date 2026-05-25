@@ -17,6 +17,7 @@ import { NovelReader } from "./NovelReader";
 import { ReaderSettings } from "./ReaderSettings";
 import { ShortcutsOverlay } from "./ShortcutsOverlay";
 import { ChapterPicker } from "./ChapterPicker";
+import { hasCoarsePointer, shouldHideReaderCursor } from "../../utils/platform";
 
 export function ReaderShell() {
   const { source = "", id = "", chapter = "" } = useParams();
@@ -36,6 +37,10 @@ export function ReaderShell() {
 
   const s = useReaderSettings();
   const { visible: chromeVisible } = useAutoHideChrome(2500);
+  const hideCursor = shouldHideReaderCursor({
+    chromeVisible,
+    coarsePointer: hasCoarsePointer(),
+  });
 
   // Fetch chapter content and title detail in parallel
   useEffect(() => {
@@ -124,7 +129,7 @@ export function ReaderShell() {
   const kind = content?.kind ?? "manga_pages";
 
   return (
-    <div className={`h-full w-full flex flex-col relative ${themeClass}`} style={{ cursor: chromeVisible ? undefined : "none" }}>
+    <div className={`h-full w-full flex flex-col relative ${themeClass}`} style={{ cursor: hideCursor ? "none" : undefined }}>
       {/* Slim progress bar — always visible at top */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-ink-700/40 z-30 pointer-events-none">
         <div

@@ -8,11 +8,18 @@ const items = [
   { to: "/settings", label: "Settings", Icon: Settings },
 ] as const;
 
-export function BottomNav() {
+interface BottomNavProps {
+  forceVisible?: boolean;
+}
+
+export function BottomNav({ forceVisible = false }: BottomNavProps) {
   return (
     <nav
       aria-label="Mobile primary"
-      className="fixed inset-x-0 bottom-0 z-50 md:hidden border-t border-ink-700/70 bg-ink-950/95 backdrop-blur-xl px-2 pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
+      className={clsx(
+        "fixed inset-x-0 bottom-0 z-50 border-t border-ink-700/70 bg-ink-950/95 backdrop-blur-xl px-2 pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]",
+        !forceVisible && "md:hidden"
+      )}
     >
       <div className="grid grid-cols-3 gap-1">
         {items.map(({ to, label, Icon }) => (

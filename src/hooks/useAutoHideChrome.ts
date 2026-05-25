@@ -13,9 +13,12 @@ export function useAutoHideChrome(timeoutMs = 2500): { visible: boolean; nudge: 
   useEffect(() => {
     function onMouse() { nudge(); }
     function onKey()   { nudge(); }
+    function onTouch() { nudge(); }
 
     window.addEventListener("mousemove", onMouse, { passive: true });
     window.addEventListener("keydown",   onKey,   { passive: true });
+    window.addEventListener("pointerdown", onTouch, { passive: true });
+    window.addEventListener("touchstart", onTouch, { passive: true });
 
     nudge(); // start the timer immediately
 
@@ -23,6 +26,8 @@ export function useAutoHideChrome(timeoutMs = 2500): { visible: boolean; nudge: 
       if (timerRef.current !== undefined) window.clearTimeout(timerRef.current);
       window.removeEventListener("mousemove", onMouse);
       window.removeEventListener("keydown",   onKey);
+      window.removeEventListener("pointerdown", onTouch);
+      window.removeEventListener("touchstart", onTouch);
     };
   }, [nudge]);
 

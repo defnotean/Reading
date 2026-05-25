@@ -49,6 +49,8 @@ pnpm.cmd install
 pnpm.cmd run android:init
 pnpm.cmd run android:dev
 pnpm.cmd run android:build
+pnpm.cmd run android:build:windows-copy
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-build-windows-copy.ps1 -Target aarch64
 ```
 
 Run `android:init` once before the first Android dev or build command. Keep an emulator running or a device connected for `android:dev`.
@@ -62,6 +64,10 @@ If the build fails with `Creation symbolic link is not allowed for this system`,
 ```powershell
 pnpm.cmd run android:build
 ```
+
+For internal Windows testing only, `android:build:windows-copy` first tries the official Tauri build for an `x86_64` debug APK, which matches the default Windows Android emulator. If Windows blocks only Tauri's symlink step, it copies the compiled `libreading_lib.so` into the generated Android `jniLibs` folder and asks Gradle to package the copied library into a debug APK. This is a local fallback, not a replacement for enabling Developer Mode.
+
+Use `-Target aarch64` when packaging for a typical arm64 Android phone. The fallback refuses to package if the official build fails before the known Windows symlink step, so a stale native library is not silently bundled.
 
 ## Internal Smoke
 

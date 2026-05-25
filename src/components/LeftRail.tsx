@@ -9,14 +9,21 @@ const items = [
   { to: "/settings", label: "Settings", Icon: Settings },
 ] as const;
 
-export function LeftRail() {
+interface LeftRailProps {
+  forceHidden?: boolean;
+}
+
+export function LeftRail({ forceHidden = false }: LeftRailProps) {
   return (
     <motion.nav
       aria-label="Desktop primary"
       initial={{ x: -8, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 220, damping: 24 }}
-      className="hidden md:flex w-20 h-full glass border-r border-ink-700/60 flex-col py-3 gap-1 flex-shrink-0"
+      className={clsx(
+        "hidden w-20 h-full glass border-r border-ink-700/60 flex-col py-3 gap-1 flex-shrink-0",
+        !forceHidden && "md:flex"
+      )}
     >
       {items.map(({ to, label, Icon }) => (
         <NavLink

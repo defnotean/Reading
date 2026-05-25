@@ -15,6 +15,7 @@
     "android:init": "tauri android init --ci",
     "android:dev": "tauri android dev",
     "android:build": "tauri android build --ci",
+    "android:build:windows-copy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-build-windows-copy.ps1",
     "preview": "vite preview",
     "tauri": "tauri"
   },

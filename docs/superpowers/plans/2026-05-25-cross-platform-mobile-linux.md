@@ -14,11 +14,11 @@
 
 Last updated: 2026-05-25
 
-- Tasks 1-6 are implemented in `cca04dd` and `e01683b`: CI, platform setup docs, mobile Vite config, Tauri mobile entrypoint, mobile shell, reader touch support, and source capability metadata.
-- Task 7 is partially complete: Android SDK/NDK and Rust Android targets are installed, `pnpm.cmd run android:init` succeeds, and `src-tauri/gen/android/**` is generated for commit. `pnpm.cmd run android:build` currently reaches Rust Android compilation, then stops on Windows because the user account cannot create the symlink Tauri uses for `libreading_lib.so`.
-- Task 8 docs are implemented: `docs/MOBILE_QA.md`, `docs/NATIVE_APPS.md`, and the roadmap cross-platform status.
-- Task 9 automated verification has passed for the non-Android gates. Manual Android smoke remains gated on the Windows symlink permission and a running emulator or device.
-- Task 10 final review and push are in progress.
+- Tasks 1-6 are implemented in current reachable history (`f74c65a`, `92ac62a`, `eb73af0`, `1bf5ddd`, `0e82efa`, `f893d4d`): CI, platform setup docs, mobile Vite config, Tauri mobile entrypoint, mobile shell, reader touch support, source capability metadata, and committed generated Android project files.
+- Task 7 is implemented for internal Windows emulator packaging: Android SDK/NDK and Rust Android targets are installed, `pnpm.cmd run android:init` succeeds, and `pnpm.cmd run android:build:windows-copy` produces an `x86_64` debug APK after confirming the official Tauri build failed only at the known Windows symlink step. The official `pnpm.cmd run android:build` path still reaches Rust Android compilation, then stops on Windows because the user account cannot create the symlink Tauri uses for `libreading_lib.so`.
+- Task 8 docs are implemented and updated: `docs/MOBILE_QA.md`, `docs/NATIVE_APPS.md`, `docs/ANDROID.md`, and the roadmap cross-platform status now include Android tablet/landscape chrome behavior, reader touch wake behavior, and the Windows copy fallback.
+- Task 9 verification passed for this final patch set: focused mobile/config Vitest tests, `pnpm.cmd run check`, `cargo test --manifest-path src-tauri\Cargo.toml --locked`, `cargo clippy --manifest-path src-tauri\Cargo.toml --locked -- -D warnings`, `git diff --check`, guarded `pnpm.cmd run android:build:windows-copy`, and Android emulator smoke all completed successfully. The smoke used the `medium_phone` AVD: install succeeded, launch focused `com.defnotean.reading/.MainActivity`, MangaDex browse loaded, a reader route opened, and bottom-nav taps reached Settings and Library.
+- Task 10 final review found no blocking issues. The remaining step is pushing the commit that contains this status update.
 
 ## Current Facts
 

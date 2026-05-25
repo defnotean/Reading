@@ -29,7 +29,9 @@ Shipped on top of the original Phase 1/2 plans:
 ### Cross-platform track
 Approved direction: internal-first, Android-first, Tauri mobile now, Linux desktop compatibility in parallel, and native SwiftUI/Jetpack Compose shells over a shared Rust core only after the Android spike proves the main flows.
 
-Shipped so far: Windows/Linux CI, Linux/iOS/Android setup docs, Tauri mobile runner, Android scripts, mobile shell navigation, mobile reader touch support, source capability metadata, mobile QA docs, native app direction docs, and generated Tauri Android project files. Local Android tooling is installed and `android:init` succeeds. `android:build` currently reaches Rust Android compilation, then stops on Windows because symlink creation is not enabled for the user account.
+Shipped so far: Windows/Linux CI, Linux/iOS/Android setup docs, Tauri mobile runner, Android scripts, mobile shell navigation, mobile reader touch support, source capability metadata, mobile QA docs, native app direction docs, generated Tauri Android project files, and a guarded Windows copy fallback for internal APK packaging.
+
+Local Android tooling is installed, `android:init` succeeds, and `android:build:windows-copy` produces an `x86_64` debug APK for the Windows emulator after confirming the official Tauri build failed only at the known Windows symlink step. That APK installs and launches on the `medium_phone` Android emulator, loads MangaDex browse content, opens a reader route, and navigates to Settings and Library through the bottom nav. The official `android:build` command still reaches Rust Android compilation, then stops on Windows because symlink creation is not enabled for the user account.
 
 See [`docs/superpowers/specs/2026-05-25-cross-platform-mobile-linux-design.md`](superpowers/specs/2026-05-25-cross-platform-mobile-linux-design.md) and [`docs/superpowers/plans/2026-05-25-cross-platform-mobile-linux.md`](superpowers/plans/2026-05-25-cross-platform-mobile-linux.md).
 
@@ -37,7 +39,7 @@ See [`docs/superpowers/specs/2026-05-25-cross-platform-mobile-linux-design.md`](
 
 In recommended order:
 
-1. **Unblock Android packaging on Windows** - enable Developer Mode or symlink creation rights, rerun `pnpm.cmd run android:build`, then smoke on an emulator or physical device with [`docs/MOBILE_QA.md`](MOBILE_QA.md).
+1. **Promote Android packaging from fallback to official path** - enable Developer Mode or symlink creation rights, rerun `pnpm.cmd run android:build`, then repeat the smoke on the emulator and a physical arm64 Android device with [`docs/MOBILE_QA.md`](MOBILE_QA.md).
 2. **Draft `phase-3-audio.md`** - decompose spec section 6 (Kokoro + rodio + emotion + audio state machine) and section 7.4 (auto-play UI, karaoke highlight, scrubber, voice picker, emotion slider) into TDD slices. Strategy: build the state machine + IPC events + frontend controls against a **fake audio driver** first, then wire in real Kokoro ONNX.
 3. **Phase 2 polish folded into Phase 3 prep** - virtualize `ChapterList.tsx`, add an "All" source tab, add explicit refresh buttons where useful, and clarify Title Detail CTAs before audio controls make the reader surface busier.
 

@@ -17,6 +17,7 @@ test("package scripts include Tauri Android commands", () => {
     "android:init": "tauri android init --ci",
     "android:dev": "tauri android dev",
     "android:build": "tauri android build --ci",
+    "android:build:windows-copy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-build-windows-copy.ps1",
   });
 });
 
@@ -86,3 +87,18 @@ test.each(["docs/ANDROID.md", "docs/LINUX.md", "docs/IOS.md"])(
     expect(existsSync(resolve(process.cwd(), docPath))).toBe(true);
   },
 );
+
+test("Windows Android copy fallback script is documented", () => {
+  expect(existsSync(resolve(process.cwd(), "scripts/android-build-windows-copy.ps1"))).toBe(true);
+  const docs = readProjectFile("docs/ANDROID.md");
+  const script = readProjectFile("scripts/android-build-windows-copy.ps1");
+
+  expect(docs).toContain("android:build:windows-copy");
+  expect(docs).toContain("-Target aarch64");
+  expect(script).toContain('[string]$Target = "x86_64"');
+  expect(script).toContain("Start-Process");
+  expect(script).toContain("RedirectStandardError");
+  expect(script).toContain("Failed to create a symbolic link");
+  expect(script).toContain("Creation symbolic link is not allowed");
+  expect(script).toContain("refusing to package a fallback APK");
+});
