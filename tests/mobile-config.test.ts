@@ -68,6 +68,18 @@ test("Vite config keeps desktop dev server local when TAURI_DEV_HOST is absent",
   expect(build).toMatchObject({ minify: "esbuild", sourcemap: false });
 });
 
+test("Tauri dev CSP allows mobile Vite HMR without relaxing production CSP", () => {
+  const config = JSON.parse(readProjectFile("src-tauri/tauri.conf.json")) as {
+    app: { security: { csp: string; devCsp?: string } };
+  };
+
+  expect(config.app.security.csp).not.toContain("ws://*");
+  expect(config.app.security.csp).not.toContain("http://*");
+  expect(config.app.security.devCsp).toContain("http://*:1420");
+  expect(config.app.security.devCsp).toContain("ws://*:1421");
+  expect(config.app.security.devCsp).toContain("http://ipc.localhost");
+});
+
 test.each(["docs/ANDROID.md", "docs/LINUX.md", "docs/IOS.md"])(
   "%s exists",
   (docPath) => {

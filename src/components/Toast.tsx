@@ -9,7 +9,7 @@ export function Toaster() {
   return (
     <div
       data-testid="toaster-stack"
-      className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] left-3 right-3 sm:bottom-6 sm:left-auto sm:right-6 flex flex-col gap-2 z-50 pointer-events-none"
+      className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom))] left-3 right-3 md:bottom-6 sm:left-auto sm:right-6 flex flex-col gap-2 z-50 pointer-events-none"
     >
       <AnimatePresence>
         {toasts.map(t => {
