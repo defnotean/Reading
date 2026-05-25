@@ -155,7 +155,7 @@ Expected: no commit is needed for a read-only preflight.
 - Create: `src-tauri/tests/audio_state_tests.rs`
 - Modify: `src-tauri/src/lib.rs`
 
-- [ ] **Step 1: Write failing state-machine tests**
+- [x] **Step 1: Write failing state-machine tests**
 
 Create `src-tauri/tests/audio_state_tests.rs`:
 
@@ -193,7 +193,7 @@ fn illegal_transition_is_returned_without_mutating_state() {
 }
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -204,7 +204,7 @@ cargo test --manifest-path src-tauri\Cargo.toml --test audio_state_tests
 
 Expected: fails because `reading_lib::audio` does not exist.
 
-- [ ] **Step 3: Implement the minimal state module**
+- [x] **Step 3: Implement the minimal state module**
 
 Create `src-tauri/src/audio/mod.rs`:
 
@@ -289,7 +289,7 @@ Modify `src-tauri/src/lib.rs`:
 pub mod audio;
 ```
 
-- [ ] **Step 4: Run the passing test**
+- [x] **Step 4: Run the passing test**
 
 Run:
 
