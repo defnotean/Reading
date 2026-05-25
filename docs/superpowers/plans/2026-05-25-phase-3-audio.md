@@ -411,7 +411,7 @@ Tests:
 - Modify: `src-tauri/src/audio/mod.rs`
 - Modify: `src-tauri/tests/audio_fake_driver_tests.rs`
 
-- [ ] **Step 1: Add failing fake-driver tests**
+- [x] **Step 1: Add failing fake-driver tests**
 
 Append to `src-tauri/tests/audio_fake_driver_tests.rs`:
 
@@ -438,7 +438,7 @@ fn fake_driver_prepares_predictable_audio_without_hardware() {
 }
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 ```powershell
 $env:PATH="$env:USERPROFILE\.cargo\bin;$env:PATH"
@@ -447,7 +447,7 @@ cargo test --manifest-path src-tauri\Cargo.toml --test audio_fake_driver_tests
 
 Expected: fails because `audio::driver` does not exist.
 
-- [ ] **Step 3: Implement `AudioDriver` and `FakeAudioDriver`**
+- [x] **Step 3: Implement `AudioDriver` and `FakeAudioDriver`**
 
 Create the trait and fake implementation in `src-tauri/src/audio/driver.rs`. The fake driver must call `plan_novel_chunks(&request.text, 1_000)`, calculate `duration_ms` from the final word timing, and return no audio bytes.
 
@@ -459,7 +459,7 @@ pub mod driver;
 pub mod state;
 ```
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 ```powershell
 $env:PATH="$env:USERPROFILE\.cargo\bin;$env:PATH"
