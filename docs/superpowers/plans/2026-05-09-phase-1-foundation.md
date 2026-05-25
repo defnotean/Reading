@@ -1,6 +1,8 @@
 # Reading — Phase 1: Foundation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status:** Completed and tagged as `phase-1`. This file is preserved as the original implementation recipe, and its checked tasks now mark shipped work. See [`docs/ROADMAP.md`](../../ROADMAP.md) for the live roadmap.
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Stand up a Tauri 2 + React app that browses MangaDex, opens any title's detail screen, and persists a starred-titles library across launches. No audio yet — that lands in Phase 3.
 
@@ -98,7 +100,7 @@ Reading/
 - Create: entire project skeleton
 - Create: `.gitignore`
 
-- [ ] **Step 1: Verify prerequisites are installed**
+- [x] **Step 1: Verify prerequisites are installed**
 
 ```powershell
 node --version    # expect v20+ or v22+
@@ -109,7 +111,7 @@ rustc --version
 
 If any are missing: install Node 22 LTS from nodejs.org, `npm i -g pnpm`, install Rust via `https://rustup.rs`. Then `rustup target add x86_64-pc-windows-msvc`.
 
-- [ ] **Step 2: Initialize Tauri project in current directory**
+- [x] **Step 2: Initialize Tauri project in current directory**
 
 ```powershell
 pnpm create tauri-app@latest . --template react-ts --identifier com.defnotean.reading --name reading --pkg-manager pnpm
@@ -117,13 +119,13 @@ pnpm create tauri-app@latest . --template react-ts --identifier com.defnotean.re
 
 If the flags above fail because the CLI changed, run `pnpm create tauri-app@latest .` and answer interactively: name=`reading`, identifier=`com.defnotean.reading`, frontend=React, language=TypeScript, package manager=pnpm.
 
-- [ ] **Step 3: Install dependencies**
+- [x] **Step 3: Install dependencies**
 
 ```powershell
 pnpm install
 ```
 
-- [ ] **Step 4: Verify dev launch**
+- [x] **Step 4: Verify dev launch**
 
 ```powershell
 pnpm tauri dev
@@ -131,7 +133,7 @@ pnpm tauri dev
 
 Expected: A native window opens with the default "Welcome to Tauri + React!" demo. Close it.
 
-- [ ] **Step 5: Initialize git and write `.gitignore`**
+- [x] **Step 5: Initialize git and write `.gitignore`**
 
 `.gitignore`:
 ```gitignore
@@ -178,19 +180,19 @@ git commit -m "chore: initialize Tauri 2 + React + TypeScript project"
 - Create: `tailwind.config.js`, `postcss.config.js`
 - Modify: `src/styles/index.css` (rename from `src/App.css` if needed)
 
-- [ ] **Step 1: Install runtime deps**
+- [x] **Step 1: Install runtime deps**
 
 ```powershell
 pnpm add react-router-dom framer-motion zustand lucide-react clsx
 ```
 
-- [ ] **Step 2: Install dev deps**
+- [x] **Step 2: Install dev deps**
 
 ```powershell
 pnpm add -D tailwindcss@3.4 postcss autoprefixer @types/react @types/react-dom vitest @testing-library/react @testing-library/jest-dom @vitest/ui jsdom
 ```
 
-- [ ] **Step 3: Initialize Tailwind**
+- [x] **Step 3: Initialize Tailwind**
 
 ```powershell
 pnpm dlx tailwindcss init -p
@@ -246,7 +248,7 @@ export default {
 };
 ```
 
-- [ ] **Step 4: Replace `src/App.css` with `src/styles/index.css`**
+- [x] **Step 4: Replace `src/App.css` with `src/styles/index.css`**
 
 Delete `src/App.css`. Create `src/styles/index.css`:
 
@@ -278,7 +280,7 @@ Delete `src/App.css`. Create `src/styles/index.css`:
 }
 ```
 
-- [ ] **Step 5: Update `src/main.tsx` to use the new stylesheet**
+- [x] **Step 5: Update `src/main.tsx` to use the new stylesheet**
 
 ```tsx
 import React from "react";
@@ -293,7 +295,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 );
 ```
 
-- [ ] **Step 6: Configure Vitest**
+- [x] **Step 6: Configure Vitest**
 
 Modify `vite.config.ts`:
 
@@ -324,7 +326,7 @@ Create `tests/setup.ts`:
 import "@testing-library/jest-dom";
 ```
 
-- [ ] **Step 7: Run dev to confirm Tailwind works**
+- [x] **Step 7: Run dev to confirm Tailwind works**
 
 Replace `src/App.tsx` with a temporary smoke test:
 ```tsx
@@ -343,7 +345,7 @@ pnpm tauri dev
 
 Expected: window shows a centered purple "Reading" title on a dark background. Close it.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 git add .
@@ -365,7 +367,7 @@ git commit -m "chore: add Tailwind, Framer Motion, Zustand, Lucide, Vitest"
 - Modify: `src/App.tsx`
 - Test: `tests/shell.test.tsx`
 
-- [ ] **Step 1: Write the failing shell test**
+- [x] **Step 1: Write the failing shell test**
 
 `tests/shell.test.tsx`:
 ```tsx
@@ -381,7 +383,7 @@ test("shell renders left rail with three destinations", () => {
 });
 ```
 
-- [ ] **Step 2: Run, verify it fails**
+- [x] **Step 2: Run, verify it fails**
 
 ```powershell
 pnpm test -- shell.test.tsx
@@ -389,7 +391,7 @@ pnpm test -- shell.test.tsx
 
 Expected: FAIL — `App` component doesn't accept the props or rail buttons aren't there yet.
 
-- [ ] **Step 3: Implement `LeftRail.tsx`**
+- [x] **Step 3: Implement `LeftRail.tsx`**
 
 ```tsx
 import { NavLink } from "react-router-dom";
@@ -436,7 +438,7 @@ export function LeftRail() {
 }
 ```
 
-- [ ] **Step 4: Implement `Shell.tsx`**
+- [x] **Step 4: Implement `Shell.tsx`**
 
 ```tsx
 import { Outlet } from "react-router-dom";
@@ -454,7 +456,7 @@ export function Shell() {
 }
 ```
 
-- [ ] **Step 5: Stub each route page**
+- [x] **Step 5: Stub each route page**
 
 `src/routes/BrowseRoute.tsx`:
 ```tsx
@@ -517,7 +519,7 @@ export default function ReaderRoute() {
 }
 ```
 
-- [ ] **Step 6: Wire `App.tsx`**
+- [x] **Step 6: Wire `App.tsx`**
 
 ```tsx
 import { BrowserRouter, MemoryRouter, Route, Routes } from "react-router-dom";
@@ -551,7 +553,7 @@ export default function App({ router: Router = BrowserRouter, initialEntries }: 
 }
 ```
 
-- [ ] **Step 7: Run test, verify it passes**
+- [x] **Step 7: Run test, verify it passes**
 
 ```powershell
 pnpm test -- shell.test.tsx
@@ -559,7 +561,7 @@ pnpm test -- shell.test.tsx
 
 Expected: PASS.
 
-- [ ] **Step 8: Visual smoke test**
+- [x] **Step 8: Visual smoke test**
 
 ```powershell
 pnpm tauri dev
@@ -567,7 +569,7 @@ pnpm tauri dev
 
 Expected: Window opens with collapsed left rail (icons only). Hover the rail — labels fade in, width expands. Click each icon — main pane swaps. Close.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```powershell
 git add .
@@ -582,7 +584,7 @@ git commit -m "feat(shell): add left rail navigation and route scaffolding"
 - Create: `src-tauri/src/error.rs`
 - Modify: `src-tauri/src/lib.rs` (or `main.rs` if no lib.rs yet)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src-tauri/tests/error_tests.rs`:
 ```rust
@@ -603,7 +605,7 @@ fn parse_errors_serialize() {
 }
 ```
 
-- [ ] **Step 2: Run, verify it fails**
+- [x] **Step 2: Run, verify it fails**
 
 ```powershell
 cd src-tauri
@@ -613,7 +615,7 @@ cd ..
 
 Expected: FAIL — `reading::error::AppError` doesn't exist.
 
-- [ ] **Step 3: Add dependencies**
+- [x] **Step 3: Add dependencies**
 
 Modify `src-tauri/Cargo.toml` `[dependencies]` block, adding (keep existing tauri/serde entries):
 ```toml
@@ -642,7 +644,7 @@ name = "reading"
 path = "src/lib.rs"
 ```
 
-- [ ] **Step 4: Create `src-tauri/src/lib.rs` exposing modules**
+- [x] **Step 4: Create `src-tauri/src/lib.rs` exposing modules**
 
 ```rust
 pub mod error;
@@ -650,7 +652,7 @@ pub mod error;
 pub use error::AppError;
 ```
 
-- [ ] **Step 5: Implement `src-tauri/src/error.rs`**
+- [x] **Step 5: Implement `src-tauri/src/error.rs`**
 
 ```rust
 use serde::Serialize;
@@ -716,7 +718,7 @@ pub type AppResult<T> = Result<T, AppError>;
 
 The `serde(tag, content)` shape produces `{"kind":"http","message":"..."}` which the test asserts.
 
-- [ ] **Step 6: Run test, verify pass**
+- [x] **Step 6: Run test, verify pass**
 
 ```powershell
 cd src-tauri
@@ -726,7 +728,7 @@ cd ..
 
 Expected: 2 PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add .
@@ -742,7 +744,7 @@ git commit -m "feat(rust): add AppError type with serde-friendly tagged shape"
 - Modify: `src-tauri/src/lib.rs`
 - Test: `src-tauri/tests/db_tests.rs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src-tauri/tests/db_tests.rs`:
 ```rust
@@ -775,7 +777,7 @@ fn db_migration_is_idempotent() {
 }
 ```
 
-- [ ] **Step 2: Add tempfile to dev-deps**
+- [x] **Step 2: Add tempfile to dev-deps**
 
 In `src-tauri/Cargo.toml`:
 ```toml
@@ -784,7 +786,7 @@ tempfile = "3"
 mockito = "1"
 ```
 
-- [ ] **Step 3: Run, verify fail**
+- [x] **Step 3: Run, verify fail**
 
 ```powershell
 cd src-tauri
@@ -794,7 +796,7 @@ cd ..
 
 Expected: FAIL — module doesn't exist.
 
-- [ ] **Step 4: Implement `src-tauri/src/db.rs`**
+- [x] **Step 4: Implement `src-tauri/src/db.rs`**
 
 ```rust
 use std::path::Path;
@@ -906,7 +908,7 @@ impl Db {
 }
 ```
 
-- [ ] **Step 5: Re-export from `lib.rs`**
+- [x] **Step 5: Re-export from `lib.rs`**
 
 ```rust
 pub mod db;
@@ -915,7 +917,7 @@ pub mod error;
 pub use error::{AppError, AppResult};
 ```
 
-- [ ] **Step 6: Run, verify pass**
+- [x] **Step 6: Run, verify pass**
 
 ```powershell
 cd src-tauri
@@ -925,7 +927,7 @@ cd ..
 
 Expected: 2 PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add .
@@ -941,7 +943,7 @@ git commit -m "feat(rust): add SQLite Db wrapper with migration runner"
 - Modify: `src-tauri/src/lib.rs`
 - Test: `src-tauri/tests/library_tests.rs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `src-tauri/tests/library_tests.rs`:
 ```rust
@@ -996,7 +998,7 @@ fn record_progress_keeps_only_latest() {
 }
 ```
 
-- [ ] **Step 2: Run, verify fail**
+- [x] **Step 2: Run, verify fail**
 
 ```powershell
 cd src-tauri
@@ -1006,7 +1008,7 @@ cd ..
 
 Expected: FAIL — module doesn't exist.
 
-- [ ] **Step 3: Implement `src-tauri/src/library.rs`**
+- [x] **Step 3: Implement `src-tauri/src/library.rs`**
 
 ```rust
 use chrono::Utc;
@@ -1189,7 +1191,7 @@ impl Library {
 }
 ```
 
-- [ ] **Step 4: Re-export from `lib.rs`**
+- [x] **Step 4: Re-export from `lib.rs`**
 
 ```rust
 pub mod db;
@@ -1199,7 +1201,7 @@ pub mod library;
 pub use error::{AppError, AppResult};
 ```
 
-- [ ] **Step 5: Run tests, verify pass**
+- [x] **Step 5: Run tests, verify pass**
 
 ```powershell
 cd src-tauri
@@ -1209,7 +1211,7 @@ cd ..
 
 Expected: 2 PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add .
@@ -1225,7 +1227,7 @@ git commit -m "feat(rust): add Library data layer with title/progress CRUD"
 - Modify: `src-tauri/src/lib.rs`
 - Test: included via Task 8
 
-- [ ] **Step 1: Implement `src-tauri/src/sources/mod.rs`**
+- [x] **Step 1: Implement `src-tauri/src/sources/mod.rs`**
 
 ```rust
 use async_trait::async_trait;
@@ -1298,7 +1300,7 @@ pub trait Source: Send + Sync {
 }
 ```
 
-- [ ] **Step 2: Re-export from `lib.rs`**
+- [x] **Step 2: Re-export from `lib.rs`**
 
 ```rust
 pub mod db;
@@ -1309,7 +1311,7 @@ pub mod sources;
 pub use error::{AppError, AppResult};
 ```
 
-- [ ] **Step 3: Verify the project still compiles**
+- [x] **Step 3: Verify the project still compiles**
 
 ```powershell
 cd src-tauri
@@ -1321,7 +1323,7 @@ Expected: success (the `mangadex` module is referenced but we'll add it next; we
 
 If `cargo build` fails because of `pub mod mangadex;`, **temporarily comment that line** and uncomment in Task 8 after creating the file.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add .
@@ -1339,7 +1341,7 @@ git commit -m "feat(rust): add Source trait and shared content types"
 - Test: `src-tauri/tests/mangadex_tests.rs`
 - Fixtures: `src-tauri/fixtures/mangadex_browse.json`, `mangadex_title.json`, `mangadex_feed.json`, `mangadex_at_home.json`
 
-- [ ] **Step 1: Capture fixtures from MangaDex**
+- [x] **Step 1: Capture fixtures from MangaDex**
 
 ```powershell
 mkdir -Force src-tauri\fixtures
@@ -1351,7 +1353,7 @@ curl -o src-tauri\fixtures\mangadex_at_home.json "https://api.mangadex.org/at-ho
 
 If any returns 404 or empty, replace the IDs with two known popular manga IDs from MangaDex and retry. The fixture **content** matters more than the exact title — they're snapshots used to test the parser.
 
-- [ ] **Step 2: Implement `src-tauri/src/http.rs`**
+- [x] **Step 2: Implement `src-tauri/src/http.rs`**
 
 ```rust
 use std::time::Duration;
@@ -1388,7 +1390,7 @@ pub async fn get_json<T: serde::de::DeserializeOwned>(url: &str) -> AppResult<T>
 }
 ```
 
-- [ ] **Step 3: Write failing parser test**
+- [x] **Step 3: Write failing parser test**
 
 `src-tauri/tests/mangadex_tests.rs`:
 ```rust
@@ -1436,7 +1438,7 @@ cargo test --test mangadex_tests
 cd ..
 ```
 
-- [ ] **Step 4: Implement `src-tauri/src/sources/mangadex.rs`**
+- [x] **Step 4: Implement `src-tauri/src/sources/mangadex.rs`**
 
 ```rust
 use async_trait::async_trait;
@@ -1635,7 +1637,7 @@ pub mod parse {
 }
 ```
 
-- [ ] **Step 5: Add `urlencoding` dep**
+- [x] **Step 5: Add `urlencoding` dep**
 
 ```powershell
 cd src-tauri
@@ -1643,7 +1645,7 @@ cargo add urlencoding
 cd ..
 ```
 
-- [ ] **Step 6: Re-export http + uncomment mangadex from lib.rs**
+- [x] **Step 6: Re-export http + uncomment mangadex from lib.rs**
 
 `src-tauri/src/lib.rs`:
 ```rust
@@ -1658,7 +1660,7 @@ pub use error::{AppError, AppResult};
 
 If you commented out `pub mod mangadex;` in Task 7, **uncomment it now** in `src-tauri/src/sources/mod.rs`.
 
-- [ ] **Step 7: Run, verify pass**
+- [x] **Step 7: Run, verify pass**
 
 ```powershell
 cd src-tauri
@@ -1668,7 +1670,7 @@ cd ..
 
 Expected: 4 PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 git add .
@@ -1685,7 +1687,7 @@ git commit -m "feat(sources): add MangaDex adapter with parser-level tests"
 - Modify: `src-tauri/src/main.rs`
 - Test: `src-tauri/tests/cache_tests.rs`
 
-- [ ] **Step 1: Write failing test**
+- [x] **Step 1: Write failing test**
 
 `src-tauri/tests/cache_tests.rs`:
 ```rust
@@ -1704,7 +1706,7 @@ async fn cache_path_is_deterministic_and_creates_dir() {
 }
 ```
 
-- [ ] **Step 2: Run, verify fail**
+- [x] **Step 2: Run, verify fail**
 
 ```powershell
 cd src-tauri
@@ -1714,7 +1716,7 @@ cd ..
 
 Expected: FAIL.
 
-- [ ] **Step 3: Implement `src-tauri/src/cache.rs`**
+- [x] **Step 3: Implement `src-tauri/src/cache.rs`**
 
 ```rust
 use std::path::{Path, PathBuf};
@@ -1760,7 +1762,7 @@ pub fn covers_dir(app_data_root: &Path) -> PathBuf {
 }
 ```
 
-- [ ] **Step 4: Re-export**
+- [x] **Step 4: Re-export**
 
 `src-tauri/src/lib.rs`:
 ```rust
@@ -1774,7 +1776,7 @@ pub mod sources;
 pub use error::{AppError, AppResult};
 ```
 
-- [ ] **Step 5: Run, verify pass**
+- [x] **Step 5: Run, verify pass**
 
 ```powershell
 cd src-tauri
@@ -1784,7 +1786,7 @@ cd ..
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add .
@@ -1800,7 +1802,7 @@ git commit -m "feat(cache): add CoverCache for on-disk thumbnail cache"
 - Create: `src-tauri/src/commands.rs`
 - Modify: `src-tauri/Cargo.toml`
 
-- [ ] **Step 1: Implement `src-tauri/src/commands.rs`**
+- [x] **Step 1: Implement `src-tauri/src/commands.rs`**
 
 ```rust
 use std::sync::Arc;
@@ -1955,7 +1957,7 @@ pub fn record_progress(
 }
 ```
 
-- [ ] **Step 2: Wire `src-tauri/src/main.rs`**
+- [x] **Step 2: Wire `src-tauri/src/main.rs`**
 
 ```rust
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
@@ -1996,7 +1998,7 @@ fn main() {
 }
 ```
 
-- [ ] **Step 3: Allow asset protocol for cover paths**
+- [x] **Step 3: Allow asset protocol for cover paths**
 
 Modify `src-tauri/tauri.conf.json` so the frontend can render local cover files. Find the `app.security` block and merge:
 
@@ -2027,7 +2029,7 @@ Modify `src-tauri/tauri.conf.json` so the frontend can render local cover files.
 }
 ```
 
-- [ ] **Step 4: Build, verify clean**
+- [x] **Step 4: Build, verify clean**
 
 ```powershell
 cd src-tauri
@@ -2037,7 +2039,7 @@ cd ..
 
 Expected: success.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add .
@@ -2053,7 +2055,7 @@ git commit -m "feat(commands): wire Tauri commands + AppState"
 - Create: `src/ipc/sources.ts`
 - Create: `src/ipc/library.ts`
 
-- [ ] **Step 1: Define shared types**
+- [x] **Step 1: Define shared types**
 
 `src/types.ts`:
 ```ts
@@ -2124,7 +2126,7 @@ export interface AppErr {
 }
 ```
 
-- [ ] **Step 2: Sources IPC**
+- [x] **Step 2: Sources IPC**
 
 `src/ipc/sources.ts`:
 ```ts
@@ -2156,7 +2158,7 @@ export async function getChapter(
 }
 ```
 
-- [ ] **Step 3: Library IPC**
+- [x] **Step 3: Library IPC**
 
 `src/ipc/library.ts`:
 ```ts
@@ -2176,7 +2178,7 @@ export const recordProgress = (
   invoke("record_progress", { source, id, chapterId, positionPct });
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add src/types.ts src/ipc
@@ -2192,7 +2194,7 @@ git commit -m "feat(ipc): add typed wrappers for source + library commands"
 - Create: `src/components/Toast.tsx`
 - Modify: `src/components/Shell.tsx`
 
-- [ ] **Step 1: Implement `src/stores/useToast.ts`**
+- [x] **Step 1: Implement `src/stores/useToast.ts`**
 
 ```ts
 import { create } from "zustand";
@@ -2226,7 +2228,7 @@ export function toastInfo(message: string) {
 }
 ```
 
-- [ ] **Step 2: Implement `src/components/Toast.tsx`**
+- [x] **Step 2: Implement `src/components/Toast.tsx`**
 
 ```tsx
 import { AnimatePresence, motion } from "framer-motion";
@@ -2265,7 +2267,7 @@ export function Toaster() {
 }
 ```
 
-- [ ] **Step 3: Mount in Shell**
+- [x] **Step 3: Mount in Shell**
 
 ```tsx
 import { Outlet } from "react-router-dom";
@@ -2285,7 +2287,7 @@ export function Shell() {
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add .
@@ -2301,7 +2303,7 @@ git commit -m "feat(ui): add toast system for surfaceable errors"
 - Create: `src/components/CoverGrid.tsx`
 - Test: `tests/cover-card.test.tsx`
 
-- [ ] **Step 1: Failing component test**
+- [x] **Step 1: Failing component test**
 
 `tests/cover-card.test.tsx`:
 ```tsx
@@ -2336,7 +2338,7 @@ pnpm test -- cover-card.test.tsx
 
 Expected: FAIL (component missing).
 
-- [ ] **Step 2: Implement `CoverCard.tsx`**
+- [x] **Step 2: Implement `CoverCard.tsx`**
 
 ```tsx
 import { Link } from "react-router-dom";
@@ -2381,7 +2383,7 @@ export function CoverCard({ item }: { item: TitleSummary }) {
 }
 ```
 
-- [ ] **Step 3: Implement `CoverGrid.tsx`**
+- [x] **Step 3: Implement `CoverGrid.tsx`**
 
 ```tsx
 import { motion } from "framer-motion";
@@ -2415,7 +2417,7 @@ export function CoverGrid({ items }: { items: TitleSummary[] }) {
 }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 ```powershell
 pnpm test -- cover-card.test.tsx
@@ -2423,7 +2425,7 @@ pnpm test -- cover-card.test.tsx
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add .
@@ -2437,7 +2439,7 @@ git commit -m "feat(ui): add CoverCard + CoverGrid with stagger animation"
 **Files:**
 - Modify: `src/routes/BrowseRoute.tsx`
 
-- [ ] **Step 1: Implement Browse route**
+- [x] **Step 1: Implement Browse route**
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -2521,7 +2523,7 @@ function SkeletonGrid() {
 }
 ```
 
-- [ ] **Step 2: Run dev, smoke test**
+- [x] **Step 2: Run dev, smoke test**
 
 ```powershell
 pnpm tauri dev
@@ -2529,7 +2531,7 @@ pnpm tauri dev
 
 Expected: Browse screen loads MangaDex covers within ~2s. Switching Trending/Latest changes results. Typing in search filters results.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add .
@@ -2544,7 +2546,7 @@ git commit -m "feat(browse): hook Browse route to MangaDex with skeleton + searc
 - Modify: `src/routes/TitleRoute.tsx`
 - Create: `src/components/ChapterList.tsx`
 
-- [ ] **Step 1: Implement `ChapterList.tsx`**
+- [x] **Step 1: Implement `ChapterList.tsx`**
 
 ```tsx
 import { Link } from "react-router-dom";
@@ -2581,7 +2583,7 @@ export function ChapterList({
 }
 ```
 
-- [ ] **Step 2: Implement Title route**
+- [x] **Step 2: Implement Title route**
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -2676,7 +2678,7 @@ export default function TitleRoute() {
 }
 ```
 
-- [ ] **Step 3: Smoke test in dev**
+- [x] **Step 3: Smoke test in dev**
 
 ```powershell
 pnpm tauri dev
@@ -2684,7 +2686,7 @@ pnpm tauri dev
 
 Expected: Click a cover from Browse → smooth shared-element morph into Title Detail with hero cover + synopsis + chapter list. Star toggles between filled and unfilled.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add .
@@ -2699,7 +2701,7 @@ git commit -m "feat(title): add hero detail page with shared-element transition"
 - Create: `src/stores/useLibrary.ts`
 - Modify: `src/routes/LibraryRoute.tsx`
 
-- [ ] **Step 1: Library store**
+- [x] **Step 1: Library store**
 
 `src/stores/useLibrary.ts`:
 ```ts
@@ -2731,7 +2733,7 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
 }));
 ```
 
-- [ ] **Step 2: Library route**
+- [x] **Step 2: Library route**
 
 ```tsx
 import { useEffect } from "react";
@@ -2789,7 +2791,7 @@ export default function LibraryRoute() {
 }
 ```
 
-- [ ] **Step 3: Smoke test**
+- [x] **Step 3: Smoke test**
 
 ```powershell
 pnpm tauri dev
@@ -2797,7 +2799,7 @@ pnpm tauri dev
 
 Expected: Star a title from Title Detail → switch to Library → it appears. Hover → Remove button. Click Remove → it disappears.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add .
@@ -2812,7 +2814,7 @@ git commit -m "feat(library): add Library route + store"
 - Modify: `src-tauri/src/main.rs`
 - Modify: `src-tauri/tauri.conf.json`
 
-- [ ] **Step 1: Add a clean shutdown handler**
+- [x] **Step 1: Add a clean shutdown handler**
 
 Modify `main.rs` to flush any in-flight progress writes on shutdown. Replace the `tauri::Builder` chain with:
 
@@ -2853,11 +2855,11 @@ fn main() {
 }
 ```
 
-- [ ] **Step 2: Configure window for normal Windows behavior**
+- [x] **Step 2: Configure window for normal Windows behavior**
 
 Already done in Task 10's `tauri.conf.json` snippet (decorations: true, fullscreen: false, no tray). Verify window options match.
 
-- [ ] **Step 3: Smoke test — close behavior**
+- [x] **Step 3: Smoke test — close behavior**
 
 ```powershell
 pnpm tauri dev
@@ -2868,7 +2870,7 @@ Expected:
 - `Alt+F4` closes.
 - Right-click taskbar → Close window closes.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add .
@@ -2883,7 +2885,7 @@ git commit -m "chore(lifecycle): explicit close handling + log close requests"
 - Replace: `src-tauri/icons/*` (placeholder generation)
 - Modify: `src-tauri/tauri.conf.json` (already has title)
 
-- [ ] **Step 1: Generate icon set**
+- [x] **Step 1: Generate icon set**
 
 If you have a square PNG (≥1024px) named `app-icon.png` at the project root:
 
@@ -2900,7 +2902,7 @@ If you don't have one yet, create a temporary one (any 1024×1024 PNG works for 
 # Save as ./app-icon.png at the project root, then run the command above.
 ```
 
-- [ ] **Step 2: Build, sanity check**
+- [x] **Step 2: Build, sanity check**
 
 ```powershell
 pnpm tauri build --debug
@@ -2908,7 +2910,7 @@ pnpm tauri build --debug
 
 Expected: a debug `.exe` is produced under `src-tauri/target/debug/`. Double-click it to verify the window title and icon look right. Close it.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add src-tauri/icons app-icon.png
@@ -2922,7 +2924,7 @@ git commit -m "chore(icons): add temporary app icon set"
 **Files:**
 - Create: `README.md`
 
-- [ ] **Step 1: Write `README.md`**
+- [x] **Step 1: Write `README.md`**
 
 ```markdown
 # Reading
@@ -2963,7 +2965,7 @@ Output is at `src-tauri/target/release/bundle/`.
 See [`docs/superpowers/specs/2026-05-09-manga-novel-reader-design.md`](docs/superpowers/specs/2026-05-09-manga-novel-reader-design.md).
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```powershell
 git add README.md
@@ -2976,14 +2978,14 @@ git commit -m "docs: add Phase 1 README"
 
 **Files:** none — manual checklist.
 
-- [ ] **Step 1: Cold start to first Browse render**
+- [x] **Step 1: Cold start to first Browse render**
 
 ```powershell
 pnpm tauri build --debug
 .\src-tauri\target\debug\reading.exe
 ```
 
-- [ ] **Step 2: Walk the happy path manually**
+- [x] **Step 2: Walk the happy path manually**
 
 Verify each:
 - App opens within ~2s of double-click; left rail is collapsed showing 3 icons.
@@ -2995,7 +2997,7 @@ Verify each:
 - Close window via X → process is gone (verify in Task Manager).
 - Reopen → Library is empty (Remove was persisted), star a different title to confirm star **persists** across launches.
 
-- [ ] **Step 3: Run all tests**
+- [x] **Step 3: Run all tests**
 
 ```powershell
 pnpm test
@@ -3004,7 +3006,7 @@ cd src-tauri ; cargo test ; cd ..
 
 Expected: all green.
 
-- [ ] **Step 4: Commit a phase-1 tag**
+- [x] **Step 4: Commit a phase-1 tag**
 
 ```powershell
 git add .

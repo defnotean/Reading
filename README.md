@@ -1,8 +1,10 @@
 # Reading
 
-A Windows desktop app that browses MangaDex (and soon NovelFire) and reads chapters aloud with on-device AI.
+A Windows desktop app for browsing and reading manga and web novels from MangaDex, NovelFire, ComicK, and best-effort pasted URLs.
 
-This is **Phase 1**: browse + library only. Audio comes in Phase 3.
+Current status: **Phase 2 is shipped**. The app supports catalog browsing, title detail pages, a saved library, a Continue Reading carousel, manual manga and novel readers, keyboard shortcuts, reader settings, source tabs, and hardened source fetching. Audio narration is the next major phase.
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the current roadmap and phase status.
 
 ## Develop
 
@@ -42,4 +44,4 @@ Output is at `src-tauri/target/release/bundle/`.
 
 ## Project layout
 
-See [`docs/superpowers/specs/2026-05-09-manga-novel-reader-design.md`](docs/superpowers/specs/2026-05-09-manga-novel-reader-design.md) for the full design and [`docs/superpowers/plans/2026-05-09-phase-1-foundation.md`](docs/superpowers/plans/2026-05-09-phase-1-foundation.md) for the Phase 1 implementation plan.
+See [`docs/superpowers/specs/2026-05-09-manga-novel-reader-design.md`](docs/superpowers/specs/2026-05-09-manga-novel-reader-design.md) for the full product design. The Phase 1 and Phase 2 plan files under [`docs/superpowers/plans`](docs/superpowers/plans) are historical implementation recipes with checked tasks marking shipped work; use [`docs/ROADMAP.md`](docs/ROADMAP.md) as the live status page.

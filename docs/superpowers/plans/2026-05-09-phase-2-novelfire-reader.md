@@ -1,6 +1,8 @@
 # Reading — Phase 2: NovelFire + Manual Reader Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Status:** Completed and tagged as `phase-2`. This file is preserved as the original implementation recipe, and its checked tasks now mark shipped work. See [`docs/ROADMAP.md`](../../ROADMAP.md) for the live roadmap.
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add the NovelFire source so the user can browse + open web novels, then build the Reader route in manual mode for both manga (image viewer with prev/next) and novels (paginated text with prev/next). After Phase 2 lands, the user can read full chapters end-to-end on either platform — silently, with keyboard shortcuts, with reading progress persisting across launches. Audio still doesn't exist; that's Phase 3.
 
@@ -78,7 +80,7 @@ Reading/
 
 These are reference snapshots used by Task 2's parser tests so we don't hit the network in CI.
 
-- [ ] **Step 1: Capture browse page**
+- [x] **Step 1: Capture browse page**
 
 ```powershell
 New-Item -Force -ItemType Directory src-tauri\fixtures | Out-Null
@@ -97,7 +99,7 @@ Select-String -Path src-tauri\fixtures\novelfire_browse.html -Pattern "book/" -S
 
 Expected: file size > 50KB, several `book/<slug>` references.
 
-- [ ] **Step 2: Capture title page**
+- [x] **Step 2: Capture title page**
 
 Pick a popular novel from the browse page (the implementer should grep one out of the captured `novelfire_browse.html`). For the prompt-template this is illustrative — substitute whatever slug is in the browse fixture:
 
@@ -114,7 +116,7 @@ Select-String -Path src-tauri\fixtures\novelfire_title.html -Pattern "chapter-" 
 
 Expected: at least 5 matches. If the page paginates the chapter list (NovelFire often does), additionally fetch one or two more pages of the chapter list and concatenate, OR just rely on whatever the first page gives — Phase 2 doesn't need to span every chapter; it needs to render *some* chapters correctly.
 
-- [ ] **Step 3: Capture chapter page**
+- [x] **Step 3: Capture chapter page**
 
 ```powershell
 $chap = (Select-String -Path src-tauri\fixtures\novelfire_title.html -Pattern '/book/[^"]*?/chapter-(\d+)' -AllMatches | ForEach-Object { $_.Matches } | Select-Object -First 1 -ExpandProperty Value)
@@ -131,7 +133,7 @@ Expected: dozens of `<p>` tags (the body of the chapter).
 
 If any of these capture steps fails because of Cloudflare or rate limits, **stop and report the failure** — DO NOT bypass protection. The user can fall back to saving HTML from their browser and dropping it at the expected fixture paths.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add src-tauri/fixtures/novelfire_*.html
@@ -150,7 +152,7 @@ git commit -m "test(novelfire): capture browse/title/chapter HTML fixtures"
 
 This task only writes the **parsers** (pure HTML-string-in, struct-out functions). The full `Source` impl with HTTP calls comes in Task 3.
 
-- [ ] **Step 1: Write the failing parser tests**
+- [x] **Step 1: Write the failing parser tests**
 
 `src-tauri/tests/novelfire_tests.rs`:
 
@@ -189,7 +191,7 @@ fn parses_chapter_into_paragraphs() {
 }
 ```
 
-- [ ] **Step 2: Add `scraper` to `Cargo.toml`**
+- [x] **Step 2: Add `scraper` to `Cargo.toml`**
 
 In the `[dependencies]` block of `src-tauri/Cargo.toml`, add:
 
@@ -197,7 +199,7 @@ In the `[dependencies]` block of `src-tauri/Cargo.toml`, add:
 scraper = "0.20"
 ```
 
-- [ ] **Step 3: Run tests, verify FAIL**
+- [x] **Step 3: Run tests, verify FAIL**
 
 ```powershell
 cd src-tauri
@@ -207,7 +209,7 @@ cd ..
 
 Expected: FAIL — `reading_lib::sources::novelfire` doesn't exist.
 
-- [ ] **Step 4: Add `pub mod novelfire;` to `src-tauri/src/sources/mod.rs`**
+- [x] **Step 4: Add `pub mod novelfire;` to `src-tauri/src/sources/mod.rs`**
 
 Next to the existing `pub mod mangadex;` line:
 
@@ -216,7 +218,7 @@ pub mod mangadex;
 pub mod novelfire;
 ```
 
-- [ ] **Step 5: Implement `src-tauri/src/sources/novelfire.rs` parsers**
+- [x] **Step 5: Implement `src-tauri/src/sources/novelfire.rs` parsers**
 
 Start with just the parsers (no Source trait impl yet). The implementer will need to **inspect the actual fixture HTML** to determine the right CSS selectors — NovelFire's HTML structure isn't standardized. Below is a starter sketch; **adapt selectors to what the captured fixtures actually contain**:
 
@@ -364,7 +366,7 @@ pub mod parse {
 
 **Important:** These selectors are educated guesses. The implementer must run the tests, observe failures, inspect the fixture HTML, and adjust selectors until the tests pass. The tests are the contract; the selectors are a means to satisfy them.
 
-- [ ] **Step 6: Run tests until they pass**
+- [x] **Step 6: Run tests until they pass**
 
 ```powershell
 cd src-tauri
@@ -374,7 +376,7 @@ cd ..
 
 Iterate on selectors as needed. Expected: 3/3 PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add -A
@@ -390,7 +392,7 @@ git commit -m "feat(novelfire): add HTML parsers for browse/title/chapter"
 
 The parsers from Task 2 are pure functions; this task wraps them in HTTP calls and the `Source` trait.
 
-- [ ] **Step 1: Implement the trait**
+- [x] **Step 1: Implement the trait**
 
 Append to `src-tauri/src/sources/novelfire.rs`:
 
@@ -454,7 +456,7 @@ impl Source for NovelFire {
 }
 ```
 
-- [ ] **Step 2: Build, ensure no errors**
+- [x] **Step 2: Build, ensure no errors**
 
 ```powershell
 cd src-tauri
@@ -464,7 +466,7 @@ cd ..
 
 Expected: clean.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add -A
@@ -478,7 +480,7 @@ git commit -m "feat(novelfire): implement Source trait with HTTP + 403 detection
 **Files:**
 - Modify: `src-tauri/src/commands.rs` (extend `pick_source` and `AppState`)
 
-- [ ] **Step 1: Modify `commands.rs`**
+- [x] **Step 1: Modify `commands.rs`**
 
 In `AppState`, add a `novelfire` field next to `mangadex`:
 
@@ -520,7 +522,7 @@ fn pick_source<'a>(state: &'a AppState, id: &str) -> Result<&'a Arc<dyn Source>,
 }
 ```
 
-- [ ] **Step 2: In `get_title`, record the right `ContentKind`**
+- [x] **Step 2: In `get_title`, record the right `ContentKind`**
 
 The existing code hard-codes `ContentKind::Manga`. Replace with the source's kind:
 
@@ -534,7 +536,7 @@ let title_record = TitleRecord {
 };
 ```
 
-- [ ] **Step 3: Build + run all tests**
+- [x] **Step 3: Build + run all tests**
 
 ```powershell
 cd src-tauri
@@ -545,7 +547,7 @@ cd ..
 
 Expected: clean build, 11/11 prior tests still passing, plus 3/3 new novelfire parser tests.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add -A
@@ -560,7 +562,7 @@ git commit -m "feat(commands): register NovelFire alongside MangaDex; respect so
 - Modify: `src/routes/BrowseRoute.tsx`
 - Modify: `src/types.ts` (no change needed — `TitleSummary.source` is already string)
 
-- [ ] **Step 1: Add a source-tabs control to Browse**
+- [x] **Step 1: Add a source-tabs control to Browse**
 
 Refactor `src/routes/BrowseRoute.tsx`. The current implementation hard-codes `"mangadex"`; pull that into state and add a tab control next to (or above) the Trending/Latest pill:
 
@@ -667,7 +669,7 @@ function SkeletonGrid() {
 }
 ```
 
-- [ ] **Step 2: Build + tests**
+- [x] **Step 2: Build + tests**
 
 ```powershell
 pnpm vite build
@@ -676,7 +678,7 @@ pnpm exec vitest run
 
 Expected: all green.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```powershell
 git add -A
@@ -692,7 +694,7 @@ git commit -m "feat(browse): add source tabs for MangaDex / NovelFire switch"
 
 This is just the wrapper that chooses which inner component to mount based on `ChapterContent.kind`. The `MangaReader` and `NovelReader` themselves come in Tasks 7 + 8.
 
-- [ ] **Step 1: Implement `ReaderShell.tsx`**
+- [x] **Step 1: Implement `ReaderShell.tsx`**
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -756,9 +758,9 @@ export function ReaderShell() {
 }
 ```
 
-- [ ] **Step 2: Don't wire it into the router yet** — Task 9 does that after `MangaReader` and `NovelReader` exist.
+- [x] **Step 2: Don't wire it into the router yet** — Task 9 does that after `MangaReader` and `NovelReader` exist.
 
-- [ ] **Step 3: Verify it at least type-checks** (it imports components that don't exist yet, which will error)
+- [x] **Step 3: Verify it at least type-checks** (it imports components that don't exist yet, which will error)
 
 This is expected; we commit the shell after Tasks 7 + 8 land, OR we stub the imports. To keep commits clean, **don't commit yet — stash and continue**:
 
@@ -774,7 +776,7 @@ This is expected; we commit the shell after Tasks 7 + 8 land, OR we stub the imp
 - Create: `src/components/reader/MangaReader.tsx`
 - Create: `tests/manga-reader.test.tsx`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 `tests/manga-reader.test.tsx`:
 
@@ -812,7 +814,7 @@ test("MangaReader does not advance past last page", () => {
 
 Run, expect FAIL.
 
-- [ ] **Step 2: Implement `MangaReader.tsx`**
+- [x] **Step 2: Implement `MangaReader.tsx`**
 
 ```tsx
 import { useEffect, useState } from "react";
@@ -887,7 +889,7 @@ export function MangaReader({ source, titleId, chapterId, pages }: Props) {
 }
 ```
 
-- [ ] **Step 3: Run tests, verify pass**
+- [x] **Step 3: Run tests, verify pass**
 
 ```powershell
 pnpm exec vitest run tests/manga-reader.test.tsx
@@ -895,7 +897,7 @@ pnpm exec vitest run tests/manga-reader.test.tsx
 
 Expected: 2/2 pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add src/components/reader/MangaReader.tsx tests/manga-reader.test.tsx
@@ -910,7 +912,7 @@ git commit -m "feat(reader): MangaReader manual mode with page navigation"
 - Create: `src/components/reader/NovelReader.tsx`
 - Create: `tests/novel-reader.test.tsx`
 
-- [ ] **Step 1: Failing test**
+- [x] **Step 1: Failing test**
 
 `tests/novel-reader.test.tsx`:
 
@@ -938,7 +940,7 @@ test("NovelReader paginates and shows page count", () => {
 
 Run, expect FAIL.
 
-- [ ] **Step 2: Implement `NovelReader.tsx`**
+- [x] **Step 2: Implement `NovelReader.tsx`**
 
 ```tsx
 import { useEffect, useMemo, useState } from "react";
@@ -1020,7 +1022,7 @@ export function NovelReader({ source, titleId, chapterId, paragraphs }: Props) {
 }
 ```
 
-- [ ] **Step 3: Run tests, verify pass**
+- [x] **Step 3: Run tests, verify pass**
 
 ```powershell
 pnpm exec vitest run tests/novel-reader.test.tsx
@@ -1028,7 +1030,7 @@ pnpm exec vitest run tests/novel-reader.test.tsx
 
 Expected: 1/1 pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add src/components/reader/NovelReader.tsx tests/novel-reader.test.tsx
@@ -1042,7 +1044,7 @@ git commit -m "feat(reader): NovelReader manual mode with paginated text"
 **Files:**
 - Modify: `src/routes/ReaderRoute.tsx` (replace stub)
 
-- [ ] **Step 1: Replace the stub**
+- [x] **Step 1: Replace the stub**
 
 Replace `src/routes/ReaderRoute.tsx` content with:
 
@@ -1054,14 +1056,14 @@ export default function ReaderRoute() {
 }
 ```
 
-- [ ] **Step 2: Now commit `ReaderShell.tsx` from Task 6 along with this**
+- [x] **Step 2: Now commit `ReaderShell.tsx` from Task 6 along with this**
 
 ```powershell
 git add src/components/reader/ReaderShell.tsx src/routes/ReaderRoute.tsx
 git commit -m "feat(reader): wire ReaderShell into /r/:source/:id/:chapter route"
 ```
 
-- [ ] **Step 3: Verify build + tests**
+- [x] **Step 3: Verify build + tests**
 
 ```powershell
 pnpm vite build
@@ -1080,7 +1082,7 @@ Expected: clean build, all 4 frontend tests pass (shell, cover-card, manga-reade
 - Modify: `src/components/reader/NovelReader.tsx` (use the hook)
 - Modify: `src/components/reader/ReaderShell.tsx` (Esc → back)
 
-- [ ] **Step 1: Implement the hook**
+- [x] **Step 1: Implement the hook**
 
 ```ts
 // src/hooks/useKeyboardShortcuts.ts
@@ -1108,7 +1110,7 @@ export function useKeyboardShortcuts(map: ShortcutMap, deps: ReadonlyArray<unkno
 }
 ```
 
-- [ ] **Step 2: Add shortcuts to `MangaReader`**
+- [x] **Step 2: Add shortcuts to `MangaReader`**
 
 In `MangaReader.tsx`, after `prev`/`next` are defined:
 
@@ -1121,9 +1123,9 @@ useKeyboardShortcuts({
 }, [index, total]);
 ```
 
-- [ ] **Step 3: Add shortcuts to `NovelReader`** — same pattern.
+- [x] **Step 3: Add shortcuts to `NovelReader`** — same pattern.
 
-- [ ] **Step 4: Add Esc → back in `ReaderShell`**
+- [x] **Step 4: Add Esc → back in `ReaderShell`**
 
 In `ReaderShell.tsx`, after `navigate` is set up:
 
@@ -1135,7 +1137,7 @@ useKeyboardShortcuts({
 }, [source, id]);
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 ```powershell
 pnpm vite build
@@ -1144,7 +1146,7 @@ pnpm exec vitest run
 
 Expected: clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```powershell
 git add -A
@@ -1167,13 +1169,13 @@ git commit -m "feat(reader): keyboard shortcuts (arrows = page, Esc = back)"
 
 The user can paste any URL; this module sniffs whether it's a manga (gallery of large images) or novel (Readability-style article) and parses accordingly. **Best-effort** by design.
 
-- [ ] **Step 1: Capture two fixtures**
+- [x] **Step 1: Capture two fixtures**
 
 Save two HTML pages — one obviously a novel chapter (lots of `<p>` text), one obviously a manga page (lots of large `<img>`). The user can save these from their browser via Ctrl+S, or use any saved HTML page from their reading habits. Drop them at:
 - `src-tauri/fixtures/generic_novel.html`
 - `src-tauri/fixtures/generic_manga.html`
 
-- [ ] **Step 2: Failing tests**
+- [x] **Step 2: Failing tests**
 
 `src-tauri/tests/generic_tests.rs`:
 
@@ -1210,7 +1212,7 @@ fn parses_manga_html_into_image_urls() {
 }
 ```
 
-- [ ] **Step 3: Add deps**
+- [x] **Step 3: Add deps**
 
 In `src-tauri/Cargo.toml`:
 
@@ -1220,7 +1222,7 @@ dom_smoothie = "0.13"   # adjust if a newer version is current
 
 (If `dom_smoothie` isn't available or breaks, fall back to a hand-rolled "biggest text block" heuristic — see Step 4 fallback below.)
 
-- [ ] **Step 4: Implement `src-tauri/src/sources/generic.rs`**
+- [x] **Step 4: Implement `src-tauri/src/sources/generic.rs`**
 
 ```rust
 use scraper::{Html, Selector};
@@ -1334,7 +1336,7 @@ pub fn parse_manga(html: &str, base_url: &str) -> AppResult<Vec<PageImage>> {
 }
 ```
 
-- [ ] **Step 5: Add a Tauri command for paste-URL**
+- [x] **Step 5: Add a Tauri command for paste-URL**
 
 In `src-tauri/src/commands.rs`, append:
 
@@ -1387,7 +1389,7 @@ export const fromUrl = (url: string): Promise<GenericRouteHint> => invoke("from_
 
 (The full `Source` impl for generic — handling browse/title/chapter on a single URL — is overkill for v1. We just route the URL straight to the reader via this hint.)
 
-- [ ] **Step 6: Implement a generic `Source` impl as a stub**
+- [x] **Step 6: Implement a generic `Source` impl as a stub**
 
 In `src-tauri/src/sources/generic.rs`, add:
 
@@ -1470,7 +1472,7 @@ In `AppState`, add a `pub generic: Arc<dyn Source>` field initialized as `Arc::n
 
 In `src-tauri/src/sources/mod.rs`, add `pub mod generic;`.
 
-- [ ] **Step 7: Run tests**
+- [x] **Step 7: Run tests**
 
 ```powershell
 cd src-tauri
@@ -1480,7 +1482,7 @@ cd ..
 
 Expected: all prior tests still pass + 4 new generic_tests pass.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```powershell
 git add -A
@@ -1495,7 +1497,7 @@ git commit -m "feat(generic): URL paste fallback with content-kind sniffing"
 - Create: `src/components/PasteUrlBar.tsx`
 - Modify: `src/components/Shell.tsx` (mount it in the top-bar area; or alternatively, into `BrowseRoute`)
 
-- [ ] **Step 1: Implement `PasteUrlBar.tsx`**
+- [x] **Step 1: Implement `PasteUrlBar.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -1540,7 +1542,7 @@ export function PasteUrlBar() {
 }
 ```
 
-- [ ] **Step 2: Mount `<PasteUrlBar />` in `BrowseRoute.tsx` header (next to the search field)**
+- [x] **Step 2: Mount `<PasteUrlBar />` in `BrowseRoute.tsx` header (next to the search field)**
 
 In `BrowseRoute.tsx`, replace the `<div className="ml-auto relative">` block with:
 
@@ -1556,7 +1558,7 @@ In `BrowseRoute.tsx`, replace the `<div className="ml-auto relative">` block wit
 
 …and import `PasteUrlBar`.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```powershell
 pnpm vite build
@@ -1565,7 +1567,7 @@ pnpm exec vitest run
 
 Expected: clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add -A
@@ -1580,7 +1582,7 @@ git commit -m "feat(browse): add paste-URL bar that routes to the reader"
 - Modify: `src/stores/useLibrary.ts` (also load progress)
 - Modify: `src/routes/LibraryRoute.tsx` (render carousel)
 
-- [ ] **Step 1: Extend the store**
+- [x] **Step 1: Extend the store**
 
 ```ts
 // src/stores/useLibrary.ts
@@ -1614,7 +1616,7 @@ export const useLibrary = create<LibraryStore>((set, get) => ({
 }));
 ```
 
-- [ ] **Step 2: Render the carousel in `LibraryRoute.tsx`**
+- [x] **Step 2: Render the carousel in `LibraryRoute.tsx`**
 
 Above the existing starred grid, add:
 
@@ -1650,7 +1652,7 @@ Above the existing starred grid, add:
 
 Pull `recents` from `useLibrary()` alongside `items`.
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 ```powershell
 pnpm vite build
@@ -1659,7 +1661,7 @@ pnpm exec vitest run
 
 Expected: clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```powershell
 git add -A
@@ -1670,7 +1672,7 @@ git commit -m "feat(library): add Continue Reading carousel with progress bar"
 
 ## Task 14: End-to-end smoke verification + tag
 
-- [ ] **Step 1: Run full test suite**
+- [x] **Step 1: Run full test suite**
 
 ```powershell
 cd src-tauri
@@ -1681,7 +1683,7 @@ pnpm exec vitest run
 
 Expected: all green. Rust tests should now be ~18 (11 prior + 3 novelfire + 4 generic). Frontend tests ~4 (shell, cover-card, manga-reader, novel-reader).
 
-- [ ] **Step 2: Debug build**
+- [x] **Step 2: Debug build**
 
 ```powershell
 pnpm tauri build --debug
@@ -1689,7 +1691,7 @@ pnpm tauri build --debug
 
 Expected: clean build, `src-tauri/target/debug/reading.exe` updated.
 
-- [ ] **Step 3: Manual smoke (user does this)**
+- [x] **Step 3: Manual smoke (user does this)**
 
 Launch via `start.bat`. Test:
 - Browse → tab to NovelFire → see real novels
@@ -1698,7 +1700,7 @@ Launch via `start.bat`. Test:
 - Paste a URL into the Paste bar → goes to reader and renders best-effort
 - Library → "Continue Reading" carousel shows the chapters you opened, with progress bars
 
-- [ ] **Step 4: Commit + tag**
+- [x] **Step 4: Commit + tag**
 
 ```powershell
 git add -A
