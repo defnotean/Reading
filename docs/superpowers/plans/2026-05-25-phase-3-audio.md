@@ -324,7 +324,7 @@ Tests:
 - Modify: `src-tauri/src/audio/mod.rs`
 - Create: `src-tauri/tests/audio_fake_driver_tests.rs`
 
-- [ ] **Step 1: Write failing chunk tests**
+- [x] **Step 1: Write failing chunk tests**
 
 Create `src-tauri/tests/audio_fake_driver_tests.rs`:
 
@@ -356,7 +356,7 @@ fn word_lookup_uses_elapsed_time_boundaries() {
 }
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 ```powershell
 $env:PATH="$env:USERPROFILE\.cargo\bin;$env:PATH"
@@ -365,7 +365,7 @@ cargo test --manifest-path src-tauri\Cargo.toml --test audio_fake_driver_tests
 
 Expected: fails because `audio::chunk` does not exist.
 
-- [ ] **Step 3: Implement deterministic chunk planning**
+- [x] **Step 3: Implement deterministic chunk planning**
 
 Create `src-tauri/src/audio/chunk.rs` with serializable `TtsWord`, `TtsChunk`, `plan_novel_chunks`, and `word_at_elapsed`. Use punctuation-aware sentence splitting for `.`, `!`, and `?`; assign equal word timing across each chunk; and keep timings deterministic by accepting `ms_per_sentence` as an argument.
 
@@ -376,7 +376,7 @@ pub mod chunk;
 pub mod state;
 ```
 
-- [ ] **Step 4: Run focused Rust tests**
+- [x] **Step 4: Run focused Rust tests**
 
 ```powershell
 $env:PATH="$env:USERPROFILE\.cargo\bin;$env:PATH"
