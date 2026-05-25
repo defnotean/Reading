@@ -1,7 +1,7 @@
 # Reading - Project Status
 
 > Single source of truth for what's shipped, what's next, and what's not started.
-> Last updated: 2026-05-24
+> Last updated: 2026-05-25
 
 ## Done
 
@@ -26,11 +26,18 @@ Shipped on top of the original Phase 1/2 plans:
 - **Quality gate** - `pnpm check` runs typecheck + tests + build
 - **Project docs sync** - README, this roadmap, and Phase 1/2 plan checkboxes now reflect shipped work
 
+### Cross-platform track
+Approved direction: internal-first, Android-first, Tauri mobile now, Linux desktop compatibility in parallel, and native SwiftUI/Jetpack Compose shells over a shared Rust core only after the Android spike proves the main flows.
+
+Shipped so far: Windows/Linux CI, Linux/iOS/Android setup docs, Tauri mobile runner, Android scripts, mobile shell navigation, mobile reader touch support, source capability metadata, mobile QA docs, native app direction docs, and generated Tauri Android project files. Local Android tooling is installed and `android:init` succeeds. `android:build` currently reaches Rust Android compilation, then stops on Windows because symlink creation is not enabled for the user account.
+
+See [`docs/superpowers/specs/2026-05-25-cross-platform-mobile-linux-design.md`](superpowers/specs/2026-05-25-cross-platform-mobile-linux-design.md) and [`docs/superpowers/plans/2026-05-25-cross-platform-mobile-linux.md`](superpowers/plans/2026-05-25-cross-platform-mobile-linux.md).
+
 ## Next
 
 In recommended order:
 
-1. **GitHub Actions CI** - implement the workflow planned in [`docs/superpowers/plans/2026-05-25-cross-platform-mobile-linux.md`](superpowers/plans/2026-05-25-cross-platform-mobile-linux.md): Windows/Linux quality gates for `pnpm check` + `cargo test` + `cargo clippy`, plus a manual/tag-only Linux Tauri bundle job that asserts and uploads `.deb`, `.AppImage`, or `.rpm` artifacts.
+1. **Unblock Android packaging on Windows** - enable Developer Mode or symlink creation rights, rerun `pnpm.cmd run android:build`, then smoke on an emulator or physical device with [`docs/MOBILE_QA.md`](MOBILE_QA.md).
 2. **Draft `phase-3-audio.md`** - decompose spec section 6 (Kokoro + rodio + emotion + audio state machine) and section 7.4 (auto-play UI, karaoke highlight, scrubber, voice picker, emotion slider) into TDD slices. Strategy: build the state machine + IPC events + frontend controls against a **fake audio driver** first, then wire in real Kokoro ONNX.
 3. **Phase 2 polish folded into Phase 3 prep** - virtualize `ChapterList.tsx`, add an "All" source tab, add explicit refresh buttons where useful, and clarify Title Detail CTAs before audio controls make the reader surface busier.
 

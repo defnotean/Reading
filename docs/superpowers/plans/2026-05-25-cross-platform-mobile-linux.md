@@ -1,6 +1,6 @@
 # Cross-Platform Mobile And Linux Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. The checkboxes below preserve the original implementation recipe; use **Implementation Status** for current progress.
 
 **Goal:** Make Reading build and behave correctly on Linux desktop and produce an internal Android-first Tauri mobile build, while documenting the path to native iOS and Android apps over a shared Rust core.
 
@@ -10,15 +10,25 @@
 
 ---
 
+## Implementation Status
+
+Last updated: 2026-05-25
+
+- Tasks 1-6 are implemented in `cca04dd` and `e01683b`: CI, platform setup docs, mobile Vite config, Tauri mobile entrypoint, mobile shell, reader touch support, and source capability metadata.
+- Task 7 is partially complete: Android SDK/NDK and Rust Android targets are installed, `pnpm.cmd run android:init` succeeds, and `src-tauri/gen/android/**` is generated for commit. `pnpm.cmd run android:build` currently reaches Rust Android compilation, then stops on Windows because the user account cannot create the symlink Tauri uses for `libreading_lib.so`.
+- Task 8 docs are implemented: `docs/MOBILE_QA.md`, `docs/NATIVE_APPS.md`, and the roadmap cross-platform status.
+- Task 9 automated verification has passed for the non-Android gates. Manual Android smoke remains gated on the Windows symlink permission and a running emulator or device.
+- Task 10 final review and push are in progress.
+
 ## Current Facts
 
 - Repo root: `C:\Users\Eating\Desktop\Reading`
 - GitHub remote: `https://github.com/defnotean/Reading.git`
 - Branch: `main`
 - Desktop shell uses `src/components/Titlebar.tsx`, `src/components/LeftRail.tsx`, and `src/components/Shell.tsx`.
-- Tauri builder currently lives in `src-tauri/src/main.rs`; mobile requires a shared `run()` entrypoint in `src-tauri/src/lib.rs`.
-- Vite currently has a fixed local server but no `TAURI_DEV_HOST` handling.
-- `.github/workflows/` exists and is empty.
+- Tauri builder now lives in the shared `reading_lib::run()` entrypoint in `src-tauri/src/lib.rs`; `src-tauri/src/main.rs` delegates to it for desktop.
+- Vite now honors `TAURI_DEV_HOST`, uses HMR port `1421`, and ignores `src-tauri` in the dev watcher.
+- `.github/workflows/ci.yml` now runs Windows and Linux quality gates plus a manual/tag Linux bundle job.
 - `src-tauri/Cargo.toml` already uses `rusqlite` with the `bundled` feature, which is the right starting point for Android.
 - Tauri capability file already allows window controls and `opener:default`.
 

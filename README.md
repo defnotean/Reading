@@ -2,9 +2,11 @@
 
 A Windows desktop app for browsing and reading manga and web novels from MangaDex, NovelFire, ComicK, and best-effort pasted URLs.
 
-Current status: **Phase 2 is shipped**. The app supports catalog browsing, title detail pages, a saved library, a Continue Reading carousel, manual manga and novel readers, keyboard shortcuts, reader settings, source tabs, and hardened source fetching. Audio narration is the next major phase.
+Current status: **Phase 2 is shipped and the cross-platform track is underway**. The app supports catalog browsing, title detail pages, a saved library, a Continue Reading carousel, manual manga and novel readers, keyboard shortcuts, reader settings, source tabs, hardened source fetching, mobile shell navigation, and Android-first Tauri mobile scaffolding. Audio narration is the next major product phase after Android packaging and smoke testing are unblocked.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the current roadmap and phase status.
+
+Platform setup lives in [docs/ANDROID.md](docs/ANDROID.md), [docs/LINUX.md](docs/LINUX.md), and [docs/IOS.md](docs/IOS.md). Use [docs/MOBILE_QA.md](docs/MOBILE_QA.md) for internal mobile smoke checks and [docs/NATIVE_APPS.md](docs/NATIVE_APPS.md) for the future SwiftUI/Jetpack Compose direction.
 
 ## Develop
 

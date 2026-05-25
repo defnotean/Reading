@@ -21,7 +21,10 @@ Thumbs.db
 .env.local
 
 # Tauri build outputs
-src-tauri/gen/
+src-tauri/gen/*
+!src-tauri/gen/android/
+!src-tauri/gen/android/**
+src-tauri/gen/schemas/
 src-tauri/WixTools/
 
 # Local smoke test outputs

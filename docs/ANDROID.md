@@ -53,6 +53,16 @@ pnpm.cmd run android:build
 
 Run `android:init` once before the first Android dev or build command. Keep an emulator running or a device connected for `android:dev`.
 
+## Windows Symlink Requirement
+
+`pnpm.cmd run android:build` links the compiled Rust shared library into the generated Android project. On Windows, that final packaging step requires permission to create symbolic links.
+
+If the build fails with `Creation symbolic link is not allowed for this system`, enable Windows Developer Mode or grant symlink creation rights, open a new terminal, and rerun:
+
+```powershell
+pnpm.cmd run android:build
+```
+
 ## Internal Smoke
 
 - Launch app on emulator or physical device.
