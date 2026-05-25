@@ -64,7 +64,7 @@ Reading/
 - **Frontend:** build component → small Vitest test → commit.
 - **Commits:** small + frequent, Conventional Commits.
 - **Tests:** Rust via `cargo test` (cwd `src-tauri`), Frontend via `pnpm exec vitest run` (project root).
-- **Working directory:** `C:\Users\defnotean\OneDrive\Desktop\Codex\Reading` for all shell commands.
+- **Working directory:** `C:\Users\Eating\Desktop\Reading` for all shell commands.
 - **PowerShell quirk:** RemoteSigned execution policy is set; `.ps1` shims work. Use `curl.exe` (not `curl` alias).
 - **Rust lib name:** `reading_lib`. Tests import as `use reading_lib::...`.
 - **Don't run `pnpm tauri dev`** — blocking dev server; use `pnpm vite build` + `cargo build` for verification, plus `start.bat` for visual smoke at the end of the phase.

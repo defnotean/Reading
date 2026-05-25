@@ -49,7 +49,7 @@ Use this checklist for every internal Android build and for the first iOS build 
 
 ## Platform Behavior
 
-- External URL opener launches the default browser when an external chapter URL is available.
+- External-hosted chapters stay inside Reading through the in-app fallback reader flow.
 - Rotate portrait to landscape and back.
 - Background the app, wait ten seconds, resume it.
 - Clear cache in Settings and confirm app remains responsive.

@@ -39,7 +39,7 @@ See [`docs/superpowers/specs/2026-05-25-cross-platform-mobile-linux-design.md`](
 
 In recommended order:
 
-1. **Release hardening** - keep the local release keystore safe, repeat the signed APK smoke before every GitHub Release, and test the APK on a physical arm64 Android device when one is available.
+1. **Release hardening** - keep the local release keystore safe, repeat the signed APK smoke before every GitHub Release, verify the APK package is `com.defnotean.reading`, verify the Windows installer launches without a console and reports `defnotean` company metadata, and test the APK on a physical arm64 Android device when one is available.
 2. **Draft `phase-3-audio.md`** - decompose spec section 6 (Kokoro + rodio + emotion + audio state machine) and section 7.4 (auto-play UI, karaoke highlight, scrubber, voice picker, emotion slider) into TDD slices. Strategy: build the state machine + IPC events + frontend controls against a **fake audio driver** first, then wire in real Kokoro ONNX.
 3. **Phase 2 polish folded into Phase 3 prep** - virtualize `ChapterList.tsx`, add an "All" source tab, add explicit refresh buttons where useful, and clarify Title Detail CTAs before audio controls make the reader surface busier.
 

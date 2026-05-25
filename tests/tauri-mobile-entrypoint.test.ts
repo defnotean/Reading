@@ -41,4 +41,23 @@ describe("Tauri mobile entrypoint contract", () => {
     expect(main).toContain("reading_lib::run();");
     expect(main).not.toContain("tauri::Builder::default()");
   });
+
+  test("public app identity uses the online owner name", () => {
+    const tauri = JSON.parse(read("src-tauri/tauri.conf.json"));
+    const cargo = read("src-tauri/Cargo.toml");
+    const gradle = read("src-tauri/gen/android/app/build.gradle.kts");
+    const activity = read(
+      "src-tauri/gen/android/app/src/main/java/com/defnotean/reading/MainActivity.kt",
+    );
+    const androidBuildTask = read(
+      "src-tauri/gen/android/buildSrc/src/main/java/com/defnotean/reading/kotlin/BuildTask.kt",
+    );
+
+    expect(tauri.identifier).toBe("com.defnotean.reading");
+    expect(cargo).toContain('authors = ["defnotean"]');
+    expect(gradle).toContain('namespace = "com.defnotean.reading"');
+    expect(gradle).toContain('applicationId = "com.defnotean.reading"');
+    expect(activity).toContain("package com.defnotean.reading");
+    expect(androidBuildTask).toContain("open class BuildTask");
+  });
 });

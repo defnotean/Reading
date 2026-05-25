@@ -89,7 +89,7 @@ Reading/
 - **Tests run with:**
   - Rust: `cd src-tauri && cargo test` (or `cargo test <name>` for a single test)
   - Frontend: `pnpm test` (Vitest, run from project root)
-- **Working directory** for all shell commands: `C:\Users\defnotean\OneDrive\Desktop\Codex\Reading` unless otherwise noted.
+- **Working directory** for all shell commands: `C:\Users\Eating\Desktop\Reading` unless otherwise noted.
 - **Linux-style paths** in commits and code; Windows paths only when needed for local commands.
 
 ---
