@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, BookOpen, Star } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { cachedGetTitle } from "../stores/useCache";
 import { isStarred, setStarred } from "../ipc/library";
@@ -50,6 +50,12 @@ export default function TitleRoute() {
     catch (e: any) { toastError(e.message ?? String(e)); setStarredState(!next); }
   }
 
+  function readNow(chapterId: string) {
+    navigate(`/r/${source}/${id}/${chapterId}`, {
+      state: { from: (location.state as { from?: string } | null)?.from },
+    });
+  }
+
   if (loading) {
     return (
       <div className="h-full">
@@ -91,6 +97,8 @@ export default function TitleRoute() {
   const cover = detail.summary.cover_path
     ? convertFileSrc(detail.summary.cover_path)
     : detail.summary.cover_url ?? undefined;
+  const firstChapter = detail.chapters[0] ?? null;
+  const from = (location.state as { from?: string } | null)?.from;
 
   return (
     <div className="h-full overflow-y-auto">
@@ -130,7 +138,15 @@ export default function TitleRoute() {
             <p className="text-sm text-ink-200 mt-4 leading-relaxed line-clamp-6 whitespace-pre-line">
               {detail.synopsis ?? "No synopsis available."}
             </p>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                onClick={() => firstChapter && readNow(firstChapter.chapter_id)}
+                disabled={!firstChapter}
+                className="px-4 py-2 rounded-md flex items-center gap-2 text-sm focus-ring bg-accent text-white hover:bg-accent/90 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <BookOpen size={16} />
+                {firstChapter ? "Read Now" : "No Chapters"}
+              </button>
               <button
                 onClick={toggleStar}
                 className={`px-4 py-2 rounded-md flex items-center gap-2 text-sm focus-ring ${starred ? "bg-accent text-white" : "bg-ink-700/60 hover:bg-ink-700"}`}
@@ -148,7 +164,7 @@ export default function TitleRoute() {
         <ChapterList
           summary={detail.summary}
           chapters={detail.chapters}
-          from={(location.state as { from?: string } | null)?.from}
+          from={from}
         />
       </div>
     </div>

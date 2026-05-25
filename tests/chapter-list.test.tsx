@@ -1,17 +1,8 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, expect, test, vi } from "vitest";
 
-const { openUrlMock } = vi.hoisted(() => ({
-  openUrlMock: vi.fn(),
-}));
-
-vi.mock("@tauri-apps/plugin-opener", () => ({
-  openUrl: openUrlMock,
-}));
-
 import { ChapterList } from "../src/components/ChapterList";
-import { Toaster } from "../src/components/Toast";
 import { useToast } from "../src/stores/useToast";
 
 const summary = {
@@ -22,26 +13,34 @@ const summary = {
 };
 
 beforeEach(() => {
-  openUrlMock.mockReset();
   useToast.setState({ toasts: [] });
 });
 
-test("ChapterList reports external open failures instead of silently dropping button errors", async () => {
-  openUrlMock.mockRejectedValue(new Error("blocked popup"));
+function LocationProbe() {
+  const location = useLocation();
+  return <p data-testid="path">{location.pathname}</p>;
+}
 
+test("ChapterList opens external MangaDex chapters inside the app reader", () => {
   render(
-    <MemoryRouter>
-      <ChapterList
-        summary={summary}
-        chapters={[{ chapter_id: "external", number: 1, title: "External", external_url: "https://example.com" }]}
-      />
-      <Toaster />
+    <MemoryRouter initialEntries={["/t/mangadex/title-1"]}>
+      <Routes>
+        <Route
+          path="/t/:source/:id"
+          element={
+            <ChapterList
+              summary={summary}
+              chapters={[{ chapter_id: "external", number: 1, title: "External", external_url: "https://example.com" }]}
+              from="/"
+            />
+          }
+        />
+        <Route path="/r/:source/:id/:chapter" element={<LocationProbe />} />
+      </Routes>
     </MemoryRouter>
   );
 
-  fireEvent.click(screen.getByRole("button", { name: /external/i }));
+  fireEvent.click(screen.getByRole("link", { name: /external/i }));
 
-  await waitFor(() => {
-    expect(screen.getByRole("alert")).toHaveTextContent("blocked popup");
-  });
+  expect(screen.getByTestId("path")).toHaveTextContent("/r/mangadex/title-1/external");
 });

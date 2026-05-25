@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { beforeEach, expect, test, vi } from "vitest";
 
 const { getTitleMock, isStarredMock, setStarredMock } = vi.hoisted(() => ({
@@ -38,7 +39,9 @@ const detail = {
   status: null,
   original_language: null,
   genres: ["Action"],
-  chapters: [],
+  chapters: [
+    { chapter_id: "chapter-1", number: 1, title: "Opening", external_url: null },
+  ],
 };
 
 beforeEach(() => {
@@ -51,11 +54,17 @@ beforeEach(() => {
   setStarredMock.mockResolvedValue(undefined);
 });
 
+function LocationProbe() {
+  const location = useLocation();
+  return <p data-testid="path">{location.pathname}</p>;
+}
+
 function renderTitleRoute() {
   render(
     <MemoryRouter initialEntries={["/t/mangadex/title-1"]}>
       <Routes>
         <Route path="/t/:source/:id" element={<TitleRoute />} />
+        <Route path="/r/:source/:id/:chapter" element={<LocationProbe />} />
       </Routes>
     </MemoryRouter>
   );
@@ -70,6 +79,34 @@ test("TitleRoute Add to Library button toggles the starred state", async () => {
     expect(setStarredMock).toHaveBeenCalledWith("mangadex", "title-1", true);
   });
   expect(screen.getByRole("button", { name: /in library/i })).toBeInTheDocument();
+});
+
+test("TitleRoute exposes a Read Now action for the first chapter", async () => {
+  renderTitleRoute();
+
+  fireEvent.click(await screen.findByRole("button", { name: /read now/i }));
+
+  expect(screen.getByTestId("path")).toHaveTextContent("/r/mangadex/title-1/chapter-1");
+});
+
+test("TitleRoute Read Now keeps an externally hosted first chapter inside the app", async () => {
+  getTitleMock.mockResolvedValue({
+    ...detail,
+    chapters: [
+      {
+        chapter_id: "external-first",
+        number: 1,
+        title: "Publisher hosted",
+        external_url: "https://publisher.example/chapter-1",
+      },
+    ],
+  });
+
+  renderTitleRoute();
+
+  fireEvent.click(await screen.findByRole("button", { name: /read now/i }));
+
+  expect(screen.getByTestId("path")).toHaveTextContent("/r/mangadex/title-1/external-first");
 });
 
 test("TitleRoute shows an error state when title loading fails", async () => {

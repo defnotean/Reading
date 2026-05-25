@@ -67,9 +67,8 @@ export function ReaderShell() {
     return () => { cancelled = true; };
   }, [source, id, chapter]);
 
-  // Only non-external chapters are navigable in-app
   const playable: ChapterSummary[] = useMemo(
-    () => (title?.chapters ?? []).filter(c => !c.external_url),
+    () => title?.chapters ?? [],
     [title]
   );
   const idx = playable.findIndex(c => c.chapter_id === chapter);

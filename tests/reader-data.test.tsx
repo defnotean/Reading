@@ -63,6 +63,57 @@ test("ReaderShell reuses cached title metadata when navigating chapters", async 
   expect(getTitleMock).toHaveBeenCalledTimes(1);
 });
 
+test("ReaderShell keeps externally hosted chapters in in-app navigation", async () => {
+  getTitleMock.mockResolvedValue({
+    ...titleDetail,
+    chapters: [
+      { chapter_id: "chapter-1", number: 1, title: "Chapter 1" },
+      { chapter_id: "external-chapter", number: 2, title: "External", external_url: "https://publisher.example/chapter" },
+    ],
+  });
+
+  render(
+    <MemoryRouter initialEntries={["/r/mangadex/title-1/chapter-1"]}>
+      <Routes>
+        <Route path="/r/:source/:id/:chapter" element={<ReaderShell />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  await screen.findByText("Cached Title");
+  fireEvent.click(screen.getByLabelText(/next chapter/i));
+
+  await waitFor(() => {
+    expect(getChapterMock).toHaveBeenLastCalledWith("mangadex", "title-1", "external-chapter");
+  });
+});
+
+test("ReaderShell chapter picker can jump to externally hosted chapters", async () => {
+  getTitleMock.mockResolvedValue({
+    ...titleDetail,
+    chapters: [
+      { chapter_id: "chapter-1", number: 1, title: "Chapter 1" },
+      { chapter_id: "external-chapter", number: 2, title: "External", external_url: "https://publisher.example/chapter" },
+    ],
+  });
+
+  render(
+    <MemoryRouter initialEntries={["/r/mangadex/title-1/chapter-1"]}>
+      <Routes>
+        <Route path="/r/:source/:id/:chapter" element={<ReaderShell />} />
+      </Routes>
+    </MemoryRouter>
+  );
+
+  await screen.findByText("Cached Title");
+  fireEvent.click(screen.getByRole("button", { name: /chapter 1/i }));
+  fireEvent.click(screen.getByRole("option", { name: /external/i }));
+
+  await waitFor(() => {
+    expect(getChapterMock).toHaveBeenLastCalledWith("mangadex", "title-1", "external-chapter");
+  });
+});
+
 test("ReaderShell shows an error state when chapter loading fails", async () => {
   getChapterMock.mockRejectedValue(new Error("chapter unavailable"));
 

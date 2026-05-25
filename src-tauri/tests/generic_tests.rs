@@ -1,5 +1,6 @@
 use reading_lib::library::ContentKind;
-use reading_lib::sources::generic::{detect_kind, parse_manga, parse_novel};
+use reading_lib::sources::generic::{detect_kind, parse_content, parse_manga, parse_novel};
+use reading_lib::sources::ChapterContent;
 
 #[test]
 fn detects_novel_html_as_novel() {
@@ -27,4 +28,17 @@ fn parses_manga_html_into_image_urls() {
     let pages = parse_manga(&raw, "https://example.com").unwrap();
     assert!(!pages.is_empty());
     assert!(pages.iter().all(|p| p.url.starts_with("http")));
+}
+
+#[test]
+fn parses_generic_html_into_reader_content() {
+    let raw = std::fs::read_to_string("fixtures/generic_manga.html").unwrap();
+    let content = parse_content(&raw, "https://example.com").unwrap();
+
+    match content {
+        ChapterContent::MangaPages { pages } => {
+            assert!(!pages.is_empty(), "manga fallback should produce pages");
+        }
+        other => panic!("expected manga pages, got {other:?}"),
+    }
 }

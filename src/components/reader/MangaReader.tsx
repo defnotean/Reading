@@ -36,7 +36,7 @@ export function MangaReader({
   if (pages.length === 0) {
     return (
       <div className="h-full flex items-center justify-center text-ink-300 text-sm px-6 text-center">
-        This chapter has no images. It may be hosted externally — try opening it in your browser from the title page.
+        This chapter has no images yet. Reading tried its in-app fallback but could not extract pages.
       </div>
     );
   }

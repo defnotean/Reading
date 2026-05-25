@@ -155,6 +155,22 @@ pub fn parse_manga(html: &str, base_url: &str) -> AppResult<Vec<PageImage>> {
     Ok(pages)
 }
 
+pub fn parse_content(html: &str, base_url: &str) -> AppResult<ChapterContent> {
+    match detect_kind(html) {
+        ContentKind::Manga => {
+            let pages = parse_manga(html, base_url)?;
+            Ok(ChapterContent::MangaPages { pages })
+        }
+        ContentKind::Novel => {
+            let body = parse_novel(html, base_url)?;
+            Ok(ChapterContent::NovelText {
+                plain: body.plain,
+                paragraphs: body.paragraphs,
+            })
+        }
+    }
+}
+
 pub struct Generic;
 
 #[async_trait]
@@ -219,18 +235,6 @@ impl Source for Generic {
             .map_err(|e| AppError::Parse(e.to_string()))?
             .into_owned();
         let html = crate::http::get_user_html(&url).await?;
-        match detect_kind(&html) {
-            ContentKind::Manga => {
-                let pages = parse_manga(&html, &url)?;
-                Ok(ChapterContent::MangaPages { pages })
-            }
-            ContentKind::Novel => {
-                let body = parse_novel(&html, &url)?;
-                Ok(ChapterContent::NovelText {
-                    plain: body.plain,
-                    paragraphs: body.paragraphs,
-                })
-            }
-        }
+        parse_content(&html, &url)
     }
 }

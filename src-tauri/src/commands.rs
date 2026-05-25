@@ -166,10 +166,33 @@ pub async fn get_chapter(
                     return Ok(ChapterContent::MangaPages { pages });
                 }
             }
-            // Propagate the external URL in the error message so the frontend can offer
-            // "Open on publisher's site" when ComicK also fails.
             if let Some(ext) = external_url {
-                Err(AppError::NotFound(format!("{msg}\nexternal_url={ext}")))
+                match crate::http::get_user_html(&ext)
+                    .await
+                    .and_then(|html| crate::sources::generic::parse_content(&html, &ext))
+                {
+                    Ok(content) => {
+                        tracing::info!(
+                            "MangaDex external chapter rendered through generic in-app fallback \
+                             (title={}, chapter={})",
+                            title_text,
+                            chapter_id
+                        );
+                        Ok(content)
+                    }
+                    Err(err) => {
+                        tracing::warn!(
+                            "MangaDex external chapter fallback failed \
+                             (title={}, chapter={}): {}",
+                            title_text,
+                            chapter_id,
+                            err
+                        );
+                        Err(AppError::NotFound(format!(
+                            "{msg}\nReading tried its in-app fallback for the externally hosted chapter, but could not extract readable pages yet."
+                        )))
+                    }
+                }
             } else {
                 Err(AppError::NotFound(msg))
             }
