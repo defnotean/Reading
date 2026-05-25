@@ -1,5 +1,6 @@
 import { BookOpen, Minus, Square, X } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
 function getWindowControls() {
   if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
@@ -13,8 +14,30 @@ function getWindowControls() {
   }
 }
 
+async function runWindowCommand(command: () => Promise<void>, action: string) {
+  try {
+    await command();
+  } catch (error) {
+    console.error(`Unable to ${action} window`, error);
+  }
+}
+
 export function Titlebar() {
   const win = getWindowControls();
+  const dragWindow = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!win || event.button !== 0 || event.detail > 1) {
+      return;
+    }
+
+    void runWindowCommand(() => win.startDragging(), "drag");
+  };
+  const toggleMaximize = () => {
+    if (!win) {
+      return;
+    }
+
+    void runWindowCommand(() => win.toggleMaximize(), "toggle maximized state");
+  };
 
   return (
     <div
@@ -26,7 +49,12 @@ export function Titlebar() {
       }}
     >
       {/* Left: app icon + title */}
-      <div className="flex items-center gap-2 px-3 flex-shrink-0">
+      <div
+        className="flex items-center gap-2 px-3 h-full flex-shrink-0 cursor-default"
+        data-tauri-drag-region
+        onMouseDown={dragWindow}
+        onDoubleClick={toggleMaximize}
+      >
         <BookOpen size={14} className="text-accent opacity-90" />
         <span className="text-xs font-semibold tracking-wide text-ink-300">
           Reading
@@ -35,29 +63,35 @@ export function Titlebar() {
 
       {/* Middle: drag region */}
       <div
-        className="flex-1 h-full"
+        className="flex-1 h-full cursor-default"
         data-tauri-drag-region
+        aria-hidden="true"
+        onMouseDown={dragWindow}
+        onDoubleClick={toggleMaximize}
       />
 
       {/* Right: window controls */}
       {win ? (
         <div className="flex items-center flex-shrink-0">
           <button
-            onClick={() => void win.minimize()}
+            type="button"
+            onClick={() => void runWindowCommand(() => win.minimize(), "minimize")}
             aria-label="Minimize"
             className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-700/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
           >
             <Minus size={12} />
           </button>
           <button
-            onClick={() => void win.toggleMaximize()}
+            type="button"
+            onClick={toggleMaximize}
             aria-label="Maximize"
             className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-ink-100 hover:bg-ink-700/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
           >
             <Square size={11} />
           </button>
           <button
-            onClick={() => void win.close()}
+            type="button"
+            onClick={() => void runWindowCommand(() => win.close(), "close")}
             aria-label="Close"
             className="w-8 h-9 flex items-center justify-center text-ink-400 hover:text-white hover:bg-red-500/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-300"
           >
